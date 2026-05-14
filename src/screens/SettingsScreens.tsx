@@ -221,8 +221,8 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
 
         <div className="divide-y divide-line/60 border-y border-line/60">
           <HelpRow Icon={MessageCircle} label={t('help.contact')} sub="support@bookly.mm" />
-          <HelpRow Icon={FileText} label={t('help.faq')} sub="Common questions" />
-          <HelpRow Icon={Mail} label={t('help.report')} sub="Tell us what went wrong" />
+          <HelpRow Icon={FileText} label={t('help.faq')} sub={t('help.faqSub')} />
+          <HelpRow Icon={Mail} label={t('help.report')} sub={t('help.reportSub')} />
         </div>
       </div>
     </div>
@@ -255,19 +255,11 @@ export function TermsScreen({ onBack }: { onBack: () => void }) {
         </h1>
 
         <div className="space-y-4 font-serif text-[14px] leading-[1.7] text-ink-muted">
+          <p>{t('terms.p1')}</p>
+          <p>{t('terms.p2')}</p>
           <p>
-            By using Bookly you agree to our terms of service and privacy policy.
-          </p>
-          <p>
-            Bookings are held free of charge. Payment is collected by the provider on
-            arrival unless stated otherwise. You can cancel any booking up to 2 hours
-            before the scheduled time at no cost. Repeated late cancellations may
-            impact your account standing.
-          </p>
-          <p>
-            We collect minimal personal data needed to process bookings. We do not
-            sell your data. The full privacy policy is available at
-            <span className="text-ink"> bookly.mm/privacy</span>.
+            {t('terms.p3.intro')}{' '}
+            <span className="text-ink">{t('terms.p3.url')}</span>.
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Star, Heart, ShieldCheck, Sparkles } from 'lucide-react'
+import { Star, ShieldCheck, Sparkles } from 'lucide-react'
 import { CATEGORY_BY_ID, formatMMK, formatDuration, type Provider } from '../data'
 import { ProviderCover } from './Cover'
 import { useT } from '../i18n'
@@ -72,16 +72,10 @@ export function ProviderRow({ provider, onClick }: { provider: Provider; onClick
         <ProviderCover
           category={provider.category}
           providerId={provider.id}
-          className="h-44 w-full rounded-2xl"
+          className="h-52 w-full rounded-2xl"
         >
           <span className="absolute top-3 left-3 inline-flex items-center px-2.5 h-6 rounded-full bg-canvas/95 backdrop-blur text-[10.5px] font-semibold text-ink">
             {cat.name}
-          </span>
-          <span
-            className="absolute top-3 right-3 h-8 w-8 grid place-items-center rounded-full bg-canvas/90 backdrop-blur"
-            aria-hidden
-          >
-            <Heart size={14} strokeWidth={2} className="text-ink" />
           </span>
         </ProviderCover>
       </div>

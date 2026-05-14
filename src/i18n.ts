@@ -345,6 +345,14 @@ const en: Dict = {
   'provider.gallery.kicker': 'Gallery',
   'provider.gallery.title': 'From the studio',
 
+  // Help & Terms body
+  'help.faqSub': 'Common questions',
+  'help.reportSub': 'Tell us what went wrong',
+  'terms.p1': 'By using Bookly you agree to our terms of service and privacy policy.',
+  'terms.p2': 'Bookings are held free of charge. Payment is collected by the provider on arrival unless stated otherwise. You can cancel any booking up to 2 hours before the scheduled time at no cost. Repeated late cancellations may impact your account standing.',
+  'terms.p3.intro': 'We collect minimal personal data needed to process bookings. We do not sell your data. The full privacy policy is available at',
+  'terms.p3.url': 'bookly.mm/privacy',
+
   // Me / Profile
   'me.editProfile': 'Edit profile',
   'me.section.activity': 'Activity',
@@ -730,6 +738,14 @@ const my: Dict = {
   // Provider gallery
   'provider.gallery.kicker': 'အလုပ်များ',
   'provider.gallery.title': 'ဆိုင်မှ မှတ်တမ်းများ',
+
+  // Help & Terms body
+  'help.faqSub': 'အမေးများသော မေးခွန်းများ',
+  'help.reportSub': 'ပြဿနာကို ပြောပြပါ',
+  'terms.p1': 'Bookly ကို အသုံးပြုခြင်းဖြင့် ကျွန်ုပ်တို့၏ ဝန်ဆောင်မှု စည်းကမ်းချက်များနှင့် ကိုယ်ရေးကိုယ်တာ မူဝါဒကို သဘောတူပါသည်။',
+  'terms.p2': 'ဘွတ်ကင်များကို အခမဲ့ ထိန်းသိမ်းပါသည်။ ဖော်ပြထားခြင်း မရှိပါက ဆိုင်တွင်ပင် ငွေပေးချေရပါမည်။ သတ်မှတ်ထားသော အချိန် ၂ နာရီအလို ဘွတ်ကင်တိုင်းကို အခမဲ့ ပယ်ဖျက်နိုင်ပါသည်။ ထပ်ခါထပ်ခါ နောက်ကျ ပယ်ဖျက်ပါက အကောင့်အပေါ် သက်ရောက်နိုင်ပါသည်။',
+  'terms.p3.intro': 'ဘွတ်ကင်ပြုလုပ်ရန် လိုအပ်သော ကိုယ်ရေးအချက်အလက်ကိုသာ စုဆောင်းပါသည်။ သင်၏ အချက်အလက်များကို ရောင်းချခြင်း မရှိပါ။ အပြည့်အစုံကို',
+  'terms.p3.url': 'bookly.mm/privacy',
 
   'me.editProfile': 'ပရိုဖိုင်ပြင်ရန်',
   'me.section.activity': 'လှုပ်ရှားမှု',

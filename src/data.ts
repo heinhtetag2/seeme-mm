@@ -23,8 +23,8 @@ export type Category = {
 export const CATEGORIES: Category[] = [
   {
     id: 'doctor',
-    name: 'Doctor',
-    tagline: 'Clinics, GPs, specialists',
+    name: 'Hospital',
+    tagline: 'Clinics, hospitals, specialists',
     Icon: Stethoscope,
     gradient: 'from-evergreen-50 to-tropic-50',
     tint: 'text-evergreen-50',

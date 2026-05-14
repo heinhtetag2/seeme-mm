@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { ShieldCheck, Zap, RotateCcw } from 'lucide-react'
 import { SubScreenHeader } from '../components/SubScreenHeader'
 import { ProviderCover } from '../components/Cover'
@@ -45,6 +46,20 @@ export function BookReviewScreen({
   const t = useT()
   const { show } = useToast()
   const provider = PROVIDER_BY_ID[providerId]
+  // Sticky-Total visibility: hide footer Total when the inline one is on screen.
+  const inlineTotalRef = useRef<HTMLDivElement>(null)
+  const [totalInView, setTotalInView] = useState(false)
+
+  useEffect(() => {
+    const el = inlineTotalRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => setTotalInView(entry.isIntersecting),
+      { threshold: 0.6 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
   if (!provider) {
     return (
       <div className="absolute inset-0 z-30 bg-canvas">
@@ -153,7 +168,10 @@ export function BookReviewScreen({
             <span className="text-ink-muted">{t('receipt.serviceFee')}</span>
             <span className="tabular-nums text-ink-muted">{t('receipt.free')}</span>
           </div>
-          <div className="border-t border-line/60 mt-3 pt-3 flex items-baseline justify-between">
+          <div
+            ref={inlineTotalRef}
+            className="border-t border-line/60 mt-3 pt-3 flex items-baseline justify-between"
+          >
             <span className="font-serif text-[16px] font-semibold tracking-tight">{t('book.total')}</span>
             <span className="font-serif text-[22px] font-semibold tabular-nums tracking-tight">{formatMMK(total)}</span>
           </div>
@@ -163,9 +181,14 @@ export function BookReviewScreen({
         <div className="h-6" />
       </div>
 
-      {/* Fixed footer — outside the scroll, pinned to the bottom of the frame */}
+      {/* Fixed footer — Total label collapses smoothly when the inline Total
+          becomes visible, so users never see two prices at once. */}
       <div className="shrink-0 bg-canvas border-t border-line/60 px-5 pt-3.5 pb-5">
-        <div className="flex items-baseline justify-between mb-3">
+        <div
+          className={`flex items-baseline justify-between overflow-hidden transition-all duration-200 ease-out ${
+            totalInView ? 'h-0 mb-0 opacity-0' : 'h-5 mb-3 opacity-100'
+          }`}
+        >
           <span className="text-[12.5px] text-ink-muted">{t('book.total')}</span>
           <span className="text-[16px] font-semibold tabular-nums text-ink">{formatMMK(total)}</span>
         </div>

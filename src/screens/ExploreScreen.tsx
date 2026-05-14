@@ -24,7 +24,58 @@ export function ExploreScreen({
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<'all' | CategoryId>('all')
 
-  /** City + search + category filter, then sorted by distance ascending. */
+  // Inline filter state
+  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'price'>('distance')
+  const [distanceMax, setDistanceMax] = useState<number | null>(null) // km, null = any
+  const [availability, setAvailability] = useState<'any' | 'today' | 'week'>('any')
+  const [priceMax, setPriceMax] = useState<number | null>(null) // MMK, null = any
+  // Behind ⚙ Filter modal
+  const [minRating, setMinRating] = useState<number | null>(null)
+  const [openNowOnly, setOpenNowOnly] = useState(false)
+  const [instantOnly, setInstantOnly] = useState(false)
+  const [freeCancelOnly, setFreeCancelOnly] = useState(false)
+  const [duration, setDuration] = useState<'any' | 'short' | 'mid' | 'long' | 'xlong'>('any')
+  const [language, setLanguage] = useState<'any' | 'en' | 'mm'>('any')
+  const [walkInOnly, setWalkInOnly] = useState(false)
+  const [parkingOnly, setParkingOnly] = useState(false)
+  // Which picker / modal is open
+  const [pickerOpen, setPickerOpen] = useState<null | 'sort' | 'distance' | 'availability' | 'price' | 'category' | 'all'>(null)
+
+  const activeFilterCount =
+    (minRating != null ? 1 : 0) +
+    (openNowOnly ? 1 : 0) +
+    (instantOnly ? 1 : 0) +
+    (freeCancelOnly ? 1 : 0) +
+    (duration !== 'any' ? 1 : 0) +
+    (language !== 'any' ? 1 : 0) +
+    (walkInOnly ? 1 : 0) +
+    (parkingOnly ? 1 : 0)
+
+  const anyChipActive =
+    sortBy !== 'distance' ||
+    distanceMax != null ||
+    availability !== 'any' ||
+    priceMax != null ||
+    filter !== 'all' ||
+    activeFilterCount > 0
+
+  const clearAllFilters = () => {
+    setFilter('all')
+    setSortBy('distance')
+    setDistanceMax(null)
+    setAvailability('any')
+    setPriceMax(null)
+    setMinRating(null)
+    setOpenNowOnly(false)
+    setInstantOnly(false)
+    setFreeCancelOnly(false)
+    setDuration('any')
+    setLanguage('any')
+    setWalkInOnly(false)
+    setParkingOnly(false)
+  }
+
+  /** City + search + category + chip filters, then sorted by chosen order. */
   const list = useMemo(() => {
     let base: Provider[] = PROVIDERS
     if (city && city !== 'All cities') {
@@ -36,8 +87,40 @@ export function ExploreScreen({
     } else if (filter !== 'all') {
       base = base.filter((p) => p.category === filter)
     }
-    return [...base].sort((a, b) => a.distanceKm - b.distanceKm)
-  }, [q, filter, city])
+    if (distanceMax != null) {
+      base = base.filter((p) => p.distanceKm <= distanceMax)
+    }
+    if (priceMax != null) {
+      base = base.filter((p) => Math.min(...p.services.map((s) => s.price)) <= priceMax)
+    }
+    if (minRating != null) {
+      base = base.filter((p) => p.rating >= minRating)
+    }
+    if (instantOnly) {
+      base = base.filter((p) => p.instantConfirm)
+    }
+    if (duration !== 'any') {
+      const fits = (m: number) => {
+        if (duration === 'short') return m < 30
+        if (duration === 'mid') return m >= 30 && m <= 60
+        if (duration === 'long') return m > 60 && m <= 120
+        return m > 120 // xlong
+      }
+      base = base.filter((p) => p.services.some((s) => fits(s.duration)))
+    }
+    // openNow / freeCancel / availability / language / walkIn / parking
+    // — mock pass-through (no rich data), kept as toggles for the design.
+
+    return [...base].sort((a, b) => {
+      if (sortBy === 'rating') return b.rating - a.rating
+      if (sortBy === 'price') {
+        const ap = Math.min(...a.services.map((s) => s.price))
+        const bp = Math.min(...b.services.map((s) => s.price))
+        return ap - bp
+      }
+      return a.distanceKm - b.distanceKm
+    })
+  }, [q, filter, city, distanceMax, priceMax, minRating, instantOnly, duration, sortBy])
 
   /* ───── Sheet drag state ───── */
 
@@ -144,7 +227,7 @@ export function ExploreScreen({
           onClick={recenter}
           className="absolute right-3 z-20 h-11 w-11 rounded-full bg-canvas border border-line/70 shadow-soft grid place-items-center"
           style={{
-            bottom: liveH + 16 + (miniCardShown ? 84 : noPinPillShown ? 56 : 0),
+            bottom: liveH + 28 + (miniCardShown ? 84 : noPinPillShown ? 56 : 0),
             transition: sheetTransition.replace('height', 'bottom'),
           }}
           aria-label="My location"
@@ -238,23 +321,32 @@ export function ExploreScreen({
           )}
         </div>
 
-        {/* Category filter row — "All" is text-only, categories have icons */}
-        <div className="flex gap-2 mt-2.5 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
-          <CategoryFilterChip
-            active={filter === 'all'}
-            onClick={() => setFilter('all')}
-            label={t('explore.filter.all')}
-          />
-          {CATEGORIES.map((c) => (
-            <CategoryFilterChip
-              key={c.id}
-              active={filter === c.id}
-              onClick={() => setFilter(c.id)}
-              Icon={c.Icon}
-              label={c.name}
-            />
-          ))}
-        </div>
+        {/* Category filter row — hidden in list view to avoid stacking with
+            the sheet header. Map view keeps them as a quick top filter.
+            Negative margins let the row bleed to screen edges; inner padding
+            gives the chips breathing room from those edges. */}
+        {sheet !== 'full' && (
+          <div className="relative mt-2.5 -mx-4">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 px-4">
+              <CategoryFilterChip
+                active={filter === 'all'}
+                onClick={() => setFilter('all')}
+                label={t('explore.filter.all')}
+              />
+              {CATEGORIES.map((c) => (
+                <CategoryFilterChip
+                  key={c.id}
+                  active={filter === c.id}
+                  onClick={() => setFilter(c.id)}
+                  Icon={c.Icon}
+                  label={c.name}
+                />
+              ))}
+              <span className="shrink-0 w-2" aria-hidden />
+            </div>
+            <div className="pointer-events-none absolute top-0 right-0 h-full w-6 bg-gradient-to-l from-canvas to-transparent" />
+          </div>
+        )}
 
       </div>
 
@@ -264,7 +356,7 @@ export function ExploreScreen({
         style={{ height: liveH, transition: sheetTransition }}
       >
         <div
-          className="shrink-0 pt-2 pb-2 px-5 flex flex-col items-center gap-1.5 select-none touch-none cursor-grab active:cursor-grabbing"
+          className="shrink-0 pt-2 pb-2 px-5 flex flex-col items-center gap-3 select-none touch-none cursor-grab active:cursor-grabbing"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -280,17 +372,58 @@ export function ExploreScreen({
           )}
         </div>
 
-        {/* Filter row — sliders + Sort/Price/Amenities (visual chips for now). */}
+        {/* Filter row — sliders + Sort / Distance / Availability / Price chips */}
         <div className="shrink-0 px-5 pt-1 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
           <button
-            className="shrink-0 h-9 w-9 grid place-items-center rounded-full border border-line/70 bg-canvas"
-            aria-label="Filters"
+            onClick={() => setPickerOpen('all')}
+            aria-label="All filters"
+            className={`shrink-0 inline-flex items-center gap-1.5 h-8 rounded-full transition
+              ${activeFilterCount > 0
+                ? 'bg-ink text-canvas pl-2.5 pr-1'
+                : 'bg-canvas text-ink border border-line/70 w-8 justify-center'}`}
           >
-            <SlidersHorizontal size={14} strokeWidth={2} className="text-ink" />
+            <SlidersHorizontal size={13} strokeWidth={2.1} />
+            {activeFilterCount > 0 && (
+              <span className="h-5 min-w-5 px-1.5 grid place-items-center rounded-full bg-canvas text-ink text-[11px] font-bold tabular-nums">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
-          <FilterChip label="Sort" />
-          <FilterChip label="Price" />
-          <FilterChip label="Amenities" />
+          {anyChipActive && (
+            <button
+              onClick={clearAllFilters}
+              className="shrink-0 h-8 w-8 grid place-items-center rounded-full border border-line/70 bg-canvas"
+              aria-label="Clear all filters"
+            >
+              <X size={12} strokeWidth={2.4} className="text-ink" />
+            </button>
+          )}
+          <FilterChip
+            label={sortBy === 'distance' ? 'Nearest' : sortBy === 'rating' ? 'Top rated' : 'Lowest price'}
+            active={sortBy !== 'distance'}
+            onClick={() => setPickerOpen('sort')}
+          />
+          <FilterChip
+            label={filter === 'all' ? 'Category' : (CATEGORIES.find((c) => c.id === filter)?.name ?? 'Category')}
+            active={filter !== 'all'}
+            Icon={filter === 'all' ? undefined : CATEGORIES.find((c) => c.id === filter)?.Icon}
+            onClick={() => setPickerOpen('category')}
+          />
+          <FilterChip
+            label={distanceMax == null ? 'Distance' : `≤ ${distanceMax} km`}
+            active={distanceMax != null}
+            onClick={() => setPickerOpen('distance')}
+          />
+          <FilterChip
+            label={availability === 'any' ? 'Availability' : availability === 'today' ? 'Today' : 'This week'}
+            active={availability !== 'any'}
+            onClick={() => setPickerOpen('availability')}
+          />
+          <FilterChip
+            label={priceMax == null ? 'Price' : `≤ ${formatMMK(priceMax)}`}
+            active={priceMax != null}
+            onClick={() => setPickerOpen('price')}
+          />
         </div>
 
         {sheet !== 'hidden' && (
@@ -307,7 +440,310 @@ export function ExploreScreen({
           </div>
         )}
       </div>
+
+      {/* Filter picker sheets */}
+      {pickerOpen === 'sort' && (
+        <PickerSheet title="Sort by" onClose={() => setPickerOpen(null)}>
+          <PickerOption label="Nearest" selected={sortBy === 'distance'} onClick={() => { setSortBy('distance'); setPickerOpen(null) }} />
+          <PickerOption label="Top rated" selected={sortBy === 'rating'} onClick={() => { setSortBy('rating'); setPickerOpen(null) }} />
+          <PickerOption label="Lowest price" selected={sortBy === 'price'} onClick={() => { setSortBy('price'); setPickerOpen(null) }} />
+        </PickerSheet>
+      )}
+      {pickerOpen === 'distance' && (
+        <PickerSheet title="Distance" onClose={() => setPickerOpen(null)}>
+          <PickerOption label="Any distance" selected={distanceMax == null} onClick={() => { setDistanceMax(null); setPickerOpen(null) }} />
+          <PickerOption label="Within 1 km" selected={distanceMax === 1} onClick={() => { setDistanceMax(1); setPickerOpen(null) }} />
+          <PickerOption label="Within 2 km" selected={distanceMax === 2} onClick={() => { setDistanceMax(2); setPickerOpen(null) }} />
+          <PickerOption label="Within 5 km" selected={distanceMax === 5} onClick={() => { setDistanceMax(5); setPickerOpen(null) }} />
+          <PickerOption label="Within 10 km" selected={distanceMax === 10} onClick={() => { setDistanceMax(10); setPickerOpen(null) }} />
+        </PickerSheet>
+      )}
+      {pickerOpen === 'availability' && (
+        <PickerSheet title="Availability" onClose={() => setPickerOpen(null)}>
+          <PickerOption label="Anytime" selected={availability === 'any'} onClick={() => { setAvailability('any'); setPickerOpen(null) }} />
+          <PickerOption label="Today" selected={availability === 'today'} onClick={() => { setAvailability('today'); setPickerOpen(null) }} />
+          <PickerOption label="This week" selected={availability === 'week'} onClick={() => { setAvailability('week'); setPickerOpen(null) }} />
+        </PickerSheet>
+      )}
+      {pickerOpen === 'category' && (
+        <PickerSheet title="Category" onClose={() => setPickerOpen(null)}>
+          <PickerOption label={t('explore.filter.all')} selected={filter === 'all'} onClick={() => { setFilter('all'); setPickerOpen(null) }} />
+          {CATEGORIES.map((c) => (
+            <PickerOption
+              key={c.id}
+              label={c.name}
+              selected={filter === c.id}
+              onClick={() => { setFilter(c.id); setPickerOpen(null) }}
+            />
+          ))}
+        </PickerSheet>
+      )}
+      {pickerOpen === 'price' && (
+        <PickerSheet title="Price" onClose={() => setPickerOpen(null)}>
+          <PickerOption label="Any price" selected={priceMax == null} onClick={() => { setPriceMax(null); setPickerOpen(null) }} />
+          <PickerOption label="Under 20,000 MMK" selected={priceMax === 20000} onClick={() => { setPriceMax(20000); setPickerOpen(null) }} />
+          <PickerOption label="Under 50,000 MMK" selected={priceMax === 50000} onClick={() => { setPriceMax(50000); setPickerOpen(null) }} />
+          <PickerOption label="Under 100,000 MMK" selected={priceMax === 100000} onClick={() => { setPriceMax(100000); setPickerOpen(null) }} />
+          <PickerOption label="Under 200,000 MMK" selected={priceMax === 200000} onClick={() => { setPriceMax(200000); setPickerOpen(null) }} />
+        </PickerSheet>
+      )}
+      {pickerOpen === 'all' && (
+        <AllFiltersSheet
+          onClose={() => setPickerOpen(null)}
+          minRating={minRating}
+          setMinRating={setMinRating}
+          openNowOnly={openNowOnly}
+          setOpenNowOnly={setOpenNowOnly}
+          instantOnly={instantOnly}
+          setInstantOnly={setInstantOnly}
+          freeCancelOnly={freeCancelOnly}
+          setFreeCancelOnly={setFreeCancelOnly}
+          duration={duration}
+          setDuration={setDuration}
+          language={language}
+          setLanguage={setLanguage}
+          walkInOnly={walkInOnly}
+          setWalkInOnly={setWalkInOnly}
+          parkingOnly={parkingOnly}
+          setParkingOnly={setParkingOnly}
+          onClear={() => {
+            setMinRating(null); setOpenNowOnly(false); setInstantOnly(false); setFreeCancelOnly(false)
+            setDuration('any'); setLanguage('any'); setWalkInOnly(false); setParkingOnly(false)
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+/* ─────────── Filter picker sheets ─────────── */
+
+function PickerSheet({
+  title,
+  onClose,
+  children,
+}: {
+  title: string
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="absolute inset-0 z-50 bg-black/30 flex items-end animate-fade-in">
+      <button onClick={onClose} className="absolute inset-0" aria-hidden />
+      <div className="relative w-full bg-surface-elevated border-t border-line/70 rounded-t-3xl p-5 pb-8 animate-slide-up">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 h-9 w-9 grid place-items-center rounded-full border border-line/70"
+          aria-label="Close"
+        >
+          <X size={15} strokeWidth={2.2} />
+        </button>
+        <div className="mx-auto h-1 w-10 rounded-full bg-line-strong mb-5" />
+        <div className="kicker mb-1">Filter</div>
+        <h2 className="font-serif text-[22px] leading-[1.1] tracking-tight font-semibold mb-4">{title}</h2>
+        <div className="divide-y divide-line/60 border-y border-line/60">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PickerOption({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string
+  selected: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-between py-4 text-left"
+    >
+      <span className={`text-[14px] ${selected ? 'font-semibold text-ink' : 'text-ink-muted'}`}>
+        {label}
+      </span>
+      {selected && (
+        <span className="h-5 w-5 rounded-full bg-ink grid place-items-center">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+            <path d="M2 5.5L4.5 8L9 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-canvas" />
+          </svg>
+        </span>
+      )}
+    </button>
+  )
+}
+
+type Duration = 'any' | 'short' | 'mid' | 'long' | 'xlong'
+type Lang = 'any' | 'en' | 'mm'
+
+function AllFiltersSheet({
+  onClose,
+  minRating, setMinRating,
+  openNowOnly, setOpenNowOnly,
+  instantOnly, setInstantOnly,
+  freeCancelOnly, setFreeCancelOnly,
+  duration, setDuration,
+  language, setLanguage,
+  walkInOnly, setWalkInOnly,
+  parkingOnly, setParkingOnly,
+  onClear,
+}: {
+  onClose: () => void
+  minRating: number | null
+  setMinRating: (v: number | null) => void
+  openNowOnly: boolean
+  setOpenNowOnly: (v: boolean) => void
+  instantOnly: boolean
+  setInstantOnly: (v: boolean) => void
+  freeCancelOnly: boolean
+  setFreeCancelOnly: (v: boolean) => void
+  duration: Duration
+  setDuration: (v: Duration) => void
+  language: Lang
+  setLanguage: (v: Lang) => void
+  walkInOnly: boolean
+  setWalkInOnly: (v: boolean) => void
+  parkingOnly: boolean
+  setParkingOnly: (v: boolean) => void
+  onClear: () => void
+}) {
+  return (
+    <div className="absolute inset-0 z-50 bg-black/30 flex items-end animate-fade-in">
+      <button onClick={onClose} className="absolute inset-0" aria-hidden />
+      <div className="relative w-full bg-surface-elevated border-t border-line/70 rounded-t-3xl p-5 pb-6 animate-slide-up max-h-[80%] overflow-y-auto scrollbar-hide">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 h-9 w-9 grid place-items-center rounded-full border border-line/70"
+          aria-label="Close"
+        >
+          <X size={15} strokeWidth={2.2} />
+        </button>
+        <div className="mx-auto h-1 w-10 rounded-full bg-line-strong mb-5" />
+        <div className="kicker mb-1">Filters</div>
+        <h2 className="font-serif text-[24px] leading-[1.05] tracking-tight font-semibold mb-5">All filters</h2>
+
+        {/* Minimum rating */}
+        <section className="mb-6">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">Minimum rating</div>
+          <div className="flex gap-2 flex-wrap">
+            {[null, 3, 4, 4.5].map((r) => (
+              <button
+                key={String(r)}
+                onClick={() => setMinRating(r)}
+                className={`inline-flex items-center gap-1 h-8 px-3 rounded-full text-[11.5px] font-semibold transition
+                  ${minRating === r
+                    ? 'bg-ink text-canvas'
+                    : 'bg-canvas border border-line/70 text-ink'}`}
+              >
+                {r == null ? 'Any' : (
+                  <>
+                    <Star size={11} strokeWidth={0} fill="currentColor" className={minRating === r ? 'text-canvas' : 'text-rust-50'} />
+                    {r}+
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Service duration */}
+        <section className="mb-6">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">Service duration</div>
+          <div className="flex gap-2 flex-wrap">
+            {([
+              ['any', 'Any'],
+              ['short', 'Under 30 min'],
+              ['mid', '30–60 min'],
+              ['long', '1–2 hr'],
+              ['xlong', 'Over 2 hr'],
+            ] as [Duration, string][]).map(([v, lbl]) => (
+              <button
+                key={v}
+                onClick={() => setDuration(v)}
+                className={`inline-flex items-center h-8 px-3 rounded-full bg-canvas text-ink text-[11.5px] font-semibold transition
+                  ${duration === v ? 'border-[1.5px] border-ink' : 'border border-line/70'}`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Languages */}
+        <section className="mb-6">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">Languages spoken</div>
+          <div className="flex gap-2">
+            {([
+              ['any', 'Any'],
+              ['en', 'English'],
+              ['mm', 'Burmese'],
+            ] as [Lang, string][]).map(([v, lbl]) => (
+              <button
+                key={v}
+                onClick={() => setLanguage(v)}
+                className={`inline-flex items-center h-8 px-3 rounded-full bg-canvas text-ink text-[11.5px] font-semibold transition
+                  ${language === v ? 'border-[1.5px] border-ink' : 'border border-line/70'}`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Toggle filters */}
+        <section className="mb-6 divide-y divide-line/60 border-y border-line/60">
+          <ToggleRow label="Open now" sub="Only places open right now" value={openNowOnly} onChange={setOpenNowOnly} />
+          <ToggleRow label="Instant booking" sub="Confirms immediately" value={instantOnly} onChange={setInstantOnly} />
+          <ToggleRow label="Free cancellation" sub="Cancel up to 2h before with no fee" value={freeCancelOnly} onChange={setFreeCancelOnly} />
+          <ToggleRow label="Walk-in welcome" sub="No appointment needed" value={walkInOnly} onChange={setWalkInOnly} />
+          <ToggleRow label="Parking available" sub="On-site or nearby parking" value={parkingOnly} onChange={setParkingOnly} />
+        </section>
+
+        {/* Actions */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            onClick={onClear}
+            className="h-12 rounded-full border border-line/70 text-[13px] font-semibold leading-none inline-flex items-center justify-center"
+          >
+            Clear all
+          </button>
+          <button
+            onClick={onClose}
+            className="h-12 rounded-full bg-ink text-canvas text-[13px] font-semibold leading-none inline-flex items-center justify-center"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ToggleRow({
+  label, sub, value, onChange,
+}: {
+  label: string
+  sub: string
+  value: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <button
+      onClick={() => onChange(!value)}
+      className="w-full flex items-center gap-3 py-4 text-left"
+    >
+      <div className="flex-1 min-w-0">
+        <div className="text-[13.5px] font-semibold tracking-tight">{label}</div>
+        <div className="text-[11.5px] text-ink-muted mt-0.5 truncate">{sub}</div>
+      </div>
+      <span className={`shrink-0 h-6 w-10 rounded-full p-0.5 transition ${value ? 'bg-ink' : 'bg-surface-higher'}`}>
+        <span className={`block h-5 w-5 rounded-full bg-canvas transition-transform shadow-soft ${value ? 'translate-x-4' : 'translate-x-0'}`} />
+      </span>
+    </button>
   )
 }
 
@@ -484,10 +920,11 @@ function MapCanvas({
         </div>
       </div>
 
-      {/* Panning loader — three dots at top center while user drags the map */}
+      {/* Panning loader — bare three dots, positioned just below the
+          category chip row at the top of the map. */}
       {isPanning && (
-        <div className="absolute top-[112px] inset-x-0 z-20 flex justify-center pointer-events-none">
-          <div className="inline-flex items-center gap-1.5 h-7 px-3.5 rounded-full bg-canvas/95 backdrop-blur border border-line/70 shadow-soft">
+        <div className="absolute top-[158px] inset-x-0 z-30 flex justify-center pointer-events-none">
+          <div className="inline-flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-ink animate-pulse" style={{ animationDelay: '0ms' }} />
             <span className="h-1.5 w-1.5 rounded-full bg-ink animate-pulse" style={{ animationDelay: '160ms' }} />
             <span className="h-1.5 w-1.5 rounded-full bg-line-strong animate-pulse" style={{ animationDelay: '320ms' }} />
@@ -737,14 +1174,29 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   )
 }
 
-function FilterChip({ label, onClick }: { label: string; onClick?: () => void }) {
+function FilterChip({
+  label,
+  active = false,
+  Icon,
+  onClick,
+}: {
+  label: string
+  active?: boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Icon?: any
+  onClick?: () => void
+}) {
   return (
     <button
       onClick={onClick}
-      className="shrink-0 inline-flex items-center gap-1 h-9 pl-3.5 pr-2.5 rounded-full border border-line/70 bg-canvas text-[12px] font-semibold text-ink"
+      className={`shrink-0 inline-flex items-center gap-1 h-8 pl-3 pr-2 rounded-full bg-canvas text-ink text-[11.5px] font-semibold transition
+        ${active
+          ? 'border-[1.5px] border-ink'
+          : 'border border-line/70'}`}
     >
+      {Icon && <Icon size={12} strokeWidth={2.1} className="text-ink" />}
       {label}
-      <ChevronDown size={13} strokeWidth={2.2} className="text-ink-muted" />
+      <ChevronDown size={13} strokeWidth={2.2} className={active ? 'text-ink' : 'text-ink-muted'} />
     </button>
   )
 }
@@ -752,20 +1204,20 @@ function FilterChip({ label, onClick }: { label: string; onClick?: () => void })
 function NoMatch({ hasQuery, onClear }: { hasQuery: boolean; onClear: () => void }) {
   const t = useT()
   return (
-    <div className="py-14 text-center px-6">
-      <div className="mx-auto h-12 w-12 grid place-items-center mb-5">
-        <Search size={28} className="text-brand" strokeWidth={2} />
+    <div className="py-16 text-center px-6">
+      <div className="mx-auto h-12 w-12 rounded-full border border-line grid place-items-center mb-4">
+        <Search size={18} className="text-ink-muted" strokeWidth={1.7} />
       </div>
       <h2 className="font-serif text-[18px] font-semibold tracking-tight">
         {hasQuery ? "We didn't find a match" : t('explore.empty.title')}
       </h2>
-      <p className="text-[12.5px] text-ink-muted mt-1.5 max-w-[240px] mx-auto">
+      <p className="text-[12.5px] text-ink-muted mt-1.5 max-w-[260px] mx-auto">
         {hasQuery ? 'Try a new search' : t('explore.empty.sub')}
       </p>
       {hasQuery && (
         <button
           onClick={onClear}
-          className="mt-5 inline-flex items-center h-10 px-5 rounded-full bg-ink text-canvas text-[12.5px] font-semibold"
+          className="mt-5 h-10 px-5 rounded-full bg-ink text-canvas text-[12.5px] font-semibold"
         >
           Clear search
         </button>

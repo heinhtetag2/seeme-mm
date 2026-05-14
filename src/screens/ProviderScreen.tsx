@@ -191,33 +191,35 @@ export function ProviderScreen({
 
         {/* Gallery / Portfolio of the shop's work */}
         <section className="pt-2">
-          <div className="px-5 flex items-baseline justify-between mb-4">
-            <div>
-              <div className="kicker mb-1.5">{t('provider.gallery.kicker')}</div>
-              <h2 className="font-serif text-[20px] font-semibold tracking-tight leading-tight">{t('provider.gallery.title')}</h2>
-            </div>
-            <button
-              onClick={() => setGalleryExpanded((v) => !v)}
-              className="text-[12px] font-semibold text-ink-muted"
-            >
-              {galleryExpanded ? t('staff.showLess') : t('staff.seeAll')}
-            </button>
+          <div className="px-5 mb-4">
+            <div className="kicker mb-1.5">{t('provider.gallery.kicker')}</div>
+            <h2 className="font-serif text-[20px] font-semibold tracking-tight leading-tight">{t('provider.gallery.title')}</h2>
           </div>
 
           {galleryExpanded ? (
-            <div className="px-5 grid grid-cols-3 gap-2">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <ProviderCover
-                  key={i}
-                  category={provider.category}
-                  providerId={`${provider.id}-g${i}`}
-                  className="aspect-square rounded-xl"
-                />
-              ))}
-            </div>
+            <>
+              <div className="px-5 grid grid-cols-3 gap-2">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <ProviderCover
+                    key={i}
+                    category={provider.category}
+                    providerId={`${provider.id}-g${i}`}
+                    className="aspect-square rounded-xl"
+                  />
+                ))}
+              </div>
+              <div className="px-5 mt-3">
+                <button
+                  onClick={() => setGalleryExpanded(false)}
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-line/70 text-[12px] font-semibold text-ink"
+                >
+                  {t('staff.showLess')}
+                </button>
+              </div>
+            </>
           ) : (
             <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pl-5 pr-5 pb-1">
-              {Array.from({ length: 6 }).map((_, i) => (
+              {Array.from({ length: 5 }).map((_, i) => (
                 <ProviderCover
                   key={i}
                   category={provider.category}
@@ -225,6 +227,26 @@ export function ProviderScreen({
                   className="shrink-0 h-32 w-32 rounded-xl"
                 />
               ))}
+              {/* Trailing "view all" tile — same size as a gallery thumb but
+                  signals there's more behind it. Tap to expand into the grid. */}
+              <button
+                onClick={() => setGalleryExpanded(true)}
+                className="relative shrink-0 h-32 w-32 rounded-xl overflow-hidden text-left"
+              >
+                <ProviderCover
+                  category={provider.category}
+                  providerId={`${provider.id}-g5`}
+                  className="absolute inset-0"
+                />
+                <div className="absolute inset-0 bg-ink/60 grid place-items-center text-center px-2">
+                  <div>
+                    <div className="text-canvas font-serif text-[22px] font-semibold leading-none tabular-nums">+7</div>
+                    <div className="text-canvas/85 text-[11px] font-semibold mt-1 inline-flex items-center gap-0.5">
+                      View all <ChevronRight size={11} strokeWidth={2.4} />
+                    </div>
+                  </div>
+                </div>
+              </button>
             </div>
           )}
         </section>
@@ -406,18 +428,12 @@ export function ProviderScreen({
             </button>
           </div>
         ) : (
-          <>
-            <div className="flex items-baseline justify-between mb-3">
-              <span className="text-[12.5px] text-ink-muted">{t('provider.from')}</span>
-              <span className="text-[16px] font-semibold tabular-nums text-ink">{formatMMK(cheapest)}</span>
-            </div>
-            <button
-              onClick={() => go({ kind: 'book', providerId: provider.id, serviceId: selectedService ?? undefined, staffId: undefined })}
-              className="w-full h-12 rounded-full bg-ink text-canvas text-[14px] font-semibold leading-none active:opacity-90"
-            >
-              {t('provider.book')}
-            </button>
-          </>
+          <button
+            onClick={() => go({ kind: 'book', providerId: provider.id, serviceId: selectedService ?? undefined, staffId: undefined })}
+            className="w-full h-12 rounded-full bg-ink text-canvas text-[14px] font-semibold leading-none active:opacity-90"
+          >
+            {t('provider.book')}
+          </button>
         )}
       </div>
 

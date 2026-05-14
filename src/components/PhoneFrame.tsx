@@ -2,7 +2,9 @@ import type { ReactNode } from 'react'
 
 export function PhoneFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="relative w-full max-w-[420px] aspect-[390/844] md:my-8 rounded-[48px] md:border md:border-line/60 md:shadow-soft overflow-hidden md:p-[6px] md:bg-line">
+    <div
+      className="relative w-full max-w-[390px] aspect-[390/844] md:my-4 md:max-h-[calc(100svh-2rem)] rounded-[48px] md:border md:border-line/60 md:shadow-soft overflow-hidden md:p-[6px] md:bg-line"
+    >
       <div className="relative h-full w-full rounded-[42px] overflow-hidden bg-canvas isolate">
         {/* iOS status bar mock */}
         <div className="absolute top-0 inset-x-0 z-50 flex items-center justify-between px-7 pt-3 pb-1 text-[13px] font-semibold tracking-tight text-ink">
