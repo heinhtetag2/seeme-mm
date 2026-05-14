@@ -3,31 +3,31 @@ import { useEffect, useState } from 'react'
 export type ThemePref = 'system' | 'dark' | 'light'
 type Resolved = 'dark' | 'light'
 
-const STORAGE_KEY = 'cardo:theme'
+const STORAGE_KEY = 'bookly:theme'
 
 function resolve(pref: ThemePref): Resolved {
   if (pref === 'system') {
-    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
   return pref
 }
 
 function apply(resolved: Resolved) {
   if (typeof document === 'undefined') return
-  if (resolved === 'light') document.documentElement.setAttribute('data-theme', 'light')
+  if (resolved === 'dark') document.documentElement.setAttribute('data-theme', 'dark')
   else document.documentElement.removeAttribute('data-theme')
 }
 
 export function useTheme() {
   const [pref, setPref] = useState<ThemePref>(() => {
-    if (typeof window === 'undefined') return 'dark'
-    return (localStorage.getItem(STORAGE_KEY) as ThemePref) || 'dark'
+    if (typeof window === 'undefined') return 'light'
+    return (localStorage.getItem(STORAGE_KEY) as ThemePref) || 'light'
   })
 
   useEffect(() => {
     apply(resolve(pref))
     if (pref !== 'system') return
-    const mq = window.matchMedia('(prefers-color-scheme: light)')
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const handler = () => apply(resolve('system'))
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
@@ -45,7 +45,7 @@ export function useTheme() {
 
 export type AccentId = 'blue' | 'violet' | 'emerald' | 'rose' | 'amber'
 
-const ACCENT_KEY = 'cardo:accent'
+const ACCENT_KEY = 'bookly:accent'
 
 export const ACCENTS: Record<AccentId, { brand: string; brand2: string; hex: string }> = {
   blue:    { brand: '91 141 239',  brand2: '139 92 246',  hex: '#5B8DEF' },

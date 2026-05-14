@@ -1,189 +1,148 @@
 import { useState } from 'react'
-import { Sparkles, MapPin, Crown, Bell, ChevronLeft, CheckCheck } from 'lucide-react'
+import {
+  Bell, CalendarCheck, MessageSquare, Star, Sparkles, BellOff, Settings2,
+  type LucideIcon,
+} from 'lucide-react'
+import { SubScreenHeader } from '../components/SubScreenHeader'
+import {
+  SAMPLE_NOTIFICATIONS, PROVIDER_BY_ID,
+  type AppNotification, type NotificationKind,
+} from '../data'
 import { useT } from '../i18n'
 import type { View } from '../nav'
 
-type NotifKind = 'scan' | 'follow' | 'ai' | 'nearby' | 'system' | 'message'
-
-type Notif = {
-  id: string
-  kind: NotifKind
-  who?: string
-  title: string
-  body: string
-  time: string
-  unread: boolean
-  group: 'today' | 'earlier'
+const ICON_BY_KIND: Record<NotificationKind, LucideIcon> = {
+  'booking-confirmed': CalendarCheck,
+  'booking-reminder': Bell,
+  'provider-message': MessageSquare,
+  'review-request': Star,
+  'promo': Sparkles,
 }
 
-export function NotificationsScreen({ onBack, go: _go }: { onBack: () => void; go: (v: View) => void }) {
+export function NotificationsScreen({ onBack, go }: { onBack: () => void; go: (v: View) => void }) {
   const t = useT()
-  const seed: Notif[] = [
-    { id: '1', kind: 'scan',    who: 'Aung Kyaw', title: t('notif.seed.scanTitle',   { name: 'Aung Kyaw' }), body: t('notif.seed.scanBody'),    time: '2m',                    unread: true,  group: 'today' },
-    { id: '2', kind: 'follow',  who: 'Su Su',     title: t('notif.seed.followTitle', { name: 'Su Su' }),     body: t('notif.seed.followBody'),  time: '14m',                   unread: true,  group: 'today' },
-    { id: '3', kind: 'ai',                        title: t('notif.seed.aiTitle'),                            body: t('notif.seed.aiBody'),      time: '1h',                    unread: true,  group: 'today' },
-    { id: '4', kind: 'nearby',                    title: t('notif.seed.nearbyTitle'),                        body: t('notif.seed.nearbyBody'),  time: '3h',                    unread: false, group: 'today' },
-    { id: '5', kind: 'system',                    title: t('notif.seed.proTitle'),                           body: t('notif.seed.proBody'),     time: t('notif.time.yesterday'), unread: false, group: 'earlier' },
-    { id: '6', kind: 'message', who: 'Hla Min',   title: t('notif.seed.msgTitle',    { name: 'Hla Min' }),   body: t('notif.seed.msgBody'),     time: '2d',                    unread: false, group: 'earlier' },
-    { id: '7', kind: 'scan',    who: 'Kyaw Soe',  title: t('notif.seed.savedTitle',  { name: 'Kyaw Soe' }),  body: t('notif.seed.savedBody'),   time: '3d',                    unread: false, group: 'earlier' },
-  ]
-  const [items, setItems] = useState<Notif[]>(seed)
-  const [filter, setFilter] = useState<'all' | 'unread'>('all')
+  const [items, setItems] = useState<AppNotification[]>(SAMPLE_NOTIFICATIONS)
 
-  const visible = filter === 'unread' ? items.filter((n) => n.unread) : items
-  const today = visible.filter((n) => n.group === 'today')
-  const earlier = visible.filter((n) => n.group === 'earlier')
   const unreadCount = items.filter((n) => n.unread).length
+  const today = items.filter((n) => /^\d+ h$/.test(n.when))
+  const earlier = items.filter((n) => !/^\d+ h$/.test(n.when))
 
-  const markAllRead = () => setItems((xs) => xs.map((n) => ({ ...n, unread: false })))
+  const markAllRead = () => setItems((arr) => arr.map((n) => ({ ...n, unread: false })))
+  const tap = (n: AppNotification) => {
+    setItems((arr) => arr.map((x) => (x.id === n.id ? { ...x, unread: false } : x)))
+    if (n.bookingId) go({ kind: 'booking-detail', bookingId: n.bookingId })
+    else if (n.providerId) go({ kind: 'provider', providerId: n.providerId })
+  }
 
   return (
-    <div className="absolute inset-0 bg-canvas overflow-y-auto scrollbar-hide animate-fade-in">
-      {/* Minimal header — just a back button */}
-      <header className="relative z-30 flex items-center px-3 pt-12 pb-2">
-        <button
-          onClick={onBack}
-          className="h-10 w-10 grid place-items-center rounded-full border border-line/70 bg-surface/80 backdrop-blur"
-        >
-          <ChevronLeft size={20} strokeWidth={2} />
-        </button>
-      </header>
+    <div className="absolute inset-0 z-30 bg-canvas overflow-y-auto scrollbar-hide pb-10 animate-slide-up">
+      <SubScreenHeader
+        onBack={onBack}
+        right={
+          <>
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} className="inline-flex items-center justify-center text-[12px] font-semibold leading-none text-ink px-3 h-9 rounded-full border border-line/70">
+                Mark all read
+              </button>
+            )}
+            <button
+              onClick={() => go({ kind: 'notif-prefs' })}
+              className="h-9 w-9 grid place-items-center rounded-full border border-line/70"
+              aria-label="Notification preferences"
+            >
+              <Settings2 size={14} strokeWidth={2} className="text-ink" />
+            </button>
+          </>
+        }
+      />
 
-      {/* Editorial title block */}
-      <div className="px-5 pt-3 pb-6">
-        <p className="text-[12px] font-medium text-ink-dim mb-2">{t('notif.inbox')}</p>
-        <div className="flex items-end justify-between gap-4">
-          <h1 className="text-[34px] font-bold tracking-tight leading-[1.05]">
-            {t('notif.activity')}
-          </h1>
+      <div className="px-5">
+        <div className="kicker mb-1.5">INBOX</div>
+        <h1 className="font-serif text-[28px] leading-[1.05] tracking-tight font-semibold">
+          Notifications
           {unreadCount > 0 && (
-            <span className="text-[12px] font-medium text-ink-dim pb-1.5">
-              <span className="text-ink font-semibold">{unreadCount}</span> {t('notif.unread.label')}
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-brand text-white text-[11px] font-semibold tabular-nums align-middle">
+              {unreadCount} new
             </span>
           )}
-        </div>
-      </div>
+        </h1>
 
-      {/* Tabs + mark all read */}
-      <div className="px-5 flex items-center justify-between mb-2">
-        <div className="flex items-center gap-5">
-          <Tab active={filter === 'all'}    onClick={() => setFilter('all')}>{t('notif.tab.all')}</Tab>
-          <Tab active={filter === 'unread'} onClick={() => setFilter('unread')}>{t('notif.tab.unread')}</Tab>
-        </div>
-        {unreadCount > 0 && (
-          <button onClick={markAllRead} className="flex items-center gap-1.5 text-[12px] font-medium text-ink-muted hover:text-ink transition">
-            <CheckCheck size={13} strokeWidth={2} />
-            {t('notif.markAllRead')}
-          </button>
-        )}
-      </div>
-
-      <div className="px-5 pb-10">
-        {visible.length === 0 ? (
-          <EmptyState />
+        {items.length === 0 ? (
+          <Empty />
         ) : (
-          <>
+          <div className="mt-7">
             {today.length > 0 && (
-              <Section label={t('notif.group.today')}>
-                {today.map((n) => <NotifRow key={n.id} n={n} />)}
-              </Section>
+              <Group label="TODAY" items={today} onTap={tap} />
             )}
             {earlier.length > 0 && (
-              <Section label={t('notif.group.earlier')}>
-                {earlier.map((n) => <NotifRow key={n.id} n={n} />)}
-              </Section>
+              <Group label="EARLIER" items={earlier} onTap={tap} />
             )}
-          </>
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
+function Group({ label, items, onTap }: { label: string; items: AppNotification[]; onTap: (n: AppNotification) => void }) {
+  return (
+    <div className="mb-6">
+      <div className="kicker mb-3">{label}</div>
+      <div className="divide-y divide-line/60 border-y border-line/60">
+        {items.map((n) => (
+          <Row key={n.id} n={n} onTap={() => onTap(n)} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Row({ n, onTap }: { n: AppNotification; onTap: () => void }) {
+  const Icon = ICON_BY_KIND[n.kind]
+  const provider = n.providerId ? PROVIDER_BY_ID[n.providerId] : undefined
+  const meta = provider
+    ? `${provider.area}, ${provider.city}`
+    : n.kind === 'promo' ? 'Bookly' : null
+
+  return (
+    <button onClick={onTap} className="w-full flex items-start gap-3 py-4 text-left">
+      <span className={`relative shrink-0 h-9 w-9 rounded-full grid place-items-center
+        ${n.unread ? 'bg-brand/22 text-brand' : 'bg-surface-higher text-ink-muted'}`}>
+        <Icon size={15} strokeWidth={1.9} />
+        {n.unread && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-brand ring-2 ring-canvas" />}
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <div className={`text-[13.5px] tracking-tight truncate ${n.unread ? 'font-semibold text-ink' : 'text-ink-muted font-medium'}`}>
+            {n.title}
+          </div>
+          <span className="text-[10.5px] text-ink-dim shrink-0 tabular-nums">{n.when}</span>
+        </div>
+        <p className={`text-[12px] mt-0.5 leading-relaxed ${n.unread ? 'text-ink-muted' : 'text-ink-dim'}`}>
+          {n.body}
+        </p>
+        {meta && (
+          <div className="text-[11px] text-ink-dim font-medium mt-1.5">
+            {meta}
+          </div>
         )}
       </div>
-    </div>
-  )
-}
-
-function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`relative pb-2.5 text-[13px] font-semibold transition
-        ${active ? 'text-ink' : 'text-ink-dim hover:text-ink-muted'}`}
-    >
-      {children}
-      {active && <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-ink rounded-full" />}
     </button>
   )
 }
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="border-t border-line/50 pt-4 mt-2">
-      <p className="text-[12px] font-medium text-ink-dim mb-1">{label}</p>
-      <div>{children}</div>
-    </div>
-  )
-}
-
-function NotifRow({ n }: { n: Notif }) {
-  return (
-    <button className="group relative w-full flex items-start gap-3.5 py-4 border-b border-line/40 last:border-0 text-left">
-      {/* Unread accent bar */}
-      {n.unread && (
-        <span className="absolute left-[-20px] top-1/2 -translate-y-1/2 h-7 w-[2.5px] rounded-r-full bg-brand" />
-      )}
-
-      <Leading n={n} />
-
-      <div className="flex-1 min-w-0 pt-0.5">
-        <div className="flex items-baseline gap-3">
-          <p className={`flex-1 text-[14px] leading-snug truncate ${n.unread ? 'font-semibold text-ink' : 'font-medium text-ink/90'}`}>
-            {n.title}
-          </p>
-          <span className="text-[11px] text-ink-dim flex-shrink-0 tabular-nums">{n.time}</span>
-        </div>
-        <p className="text-[12.5px] text-ink-dim mt-1 leading-relaxed line-clamp-1">{n.body}</p>
-      </div>
-    </button>
-  )
-}
-
-function Leading({ n }: { n: Notif }) {
-  // People-related notifications get an avatar — feels human, not stock.
-  if (n.who && (n.kind === 'scan' || n.kind === 'follow' || n.kind === 'message')) {
-    return <Avatar name={n.who} />
-  }
-  // System notifications get a quiet mono icon.
-  const map: Record<NotifKind, React.ReactNode> = {
-    scan:    null,
-    follow:  null,
-    message: null,
-    ai:      <Sparkles size={14} strokeWidth={1.8} />,
-    nearby:  <MapPin size={14} strokeWidth={1.8} />,
-    system:  <Crown size={14} strokeWidth={1.8} />,
-  }
-  return (
-    <div className="h-10 w-10 rounded-full border border-line/70 bg-surface/60 grid place-items-center text-ink-muted flex-shrink-0">
-      {map[n.kind]}
-    </div>
-  )
-}
-
-function Avatar({ name }: { name: string }) {
-  const initials = name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
-  return (
-    <div className="h-10 w-10 rounded-full bg-surface-elevated border border-line/60 grid place-items-center flex-shrink-0">
-      <span className="text-[12px] font-semibold tracking-tight text-ink">{initials}</span>
-    </div>
-  )
-}
-
-function EmptyState() {
+function Empty() {
   const t = useT()
   return (
-    <div className="flex flex-col items-center text-center pt-20">
-      <div className="h-14 w-14 rounded-full border border-line/60 grid place-items-center mb-4">
-        <Bell size={20} className="text-ink-dim" strokeWidth={1.6} />
+    <div className="py-16 text-center px-6">
+      <div className="mx-auto h-12 w-12 rounded-full border border-line grid place-items-center mb-4">
+        <BellOff size={18} className="text-ink-muted" strokeWidth={1.7} />
       </div>
-      <p className="text-[15px] font-semibold">{t('notif.empty.title')}</p>
-      <p className="text-[12.5px] text-ink-dim mt-1">{t('notif.empty.sub')}</p>
+      <h2 className="font-serif text-[18px] font-semibold tracking-tight">{t('notifs.allCaughtUp.title')}</h2>
+      <p className="text-[12.5px] text-ink-muted mt-1.5 max-w-[260px] mx-auto">
+        {t('notifs.allCaughtUp.sub')}
+      </p>
     </div>
   )
 }

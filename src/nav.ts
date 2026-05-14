@@ -1,43 +1,31 @@
-import type { Contact } from './data'
+import type { CategoryId, PaymentMethod } from './data'
+import type { LookKind } from './studio'
 
-export type Tab = 'home' | 'cardo' | 'ai' | 'me'
+export type Tab = 'home' | 'explore' | 'studio' | 'bookings' | 'me'
 
 export type View =
-  | { kind: 'tab'; tab: Tab }
-  | { kind: 'card-detail'; contact: Contact }
-  | { kind: 'edit-contact'; contact: Contact }
-  | { kind: 'my-card' }
-  | { kind: 'ai-create'; mode: 'card' | 'logo' }
-  | { kind: 'register' }
-  | { kind: 'scan' }
-  | { kind: 'manual' }
-  | { kind: 'qr-scan' }
-  | { kind: 'settings' }
-  | { kind: 'nearby' }
-  | { kind: 'notice' }
-  | { kind: 'subscription' }
-  | { kind: 'privacy' }
-  | { kind: 'security' }
-  | { kind: 'security-phone' }
-  | { kind: 'security-session'; device: 'iphone' | 'mac' }
-  | { kind: 'data-storage' }
+  | { kind: 'category'; categoryId: CategoryId }
+  | { kind: 'provider'; providerId: string }
+  | { kind: 'staff'; staffId: string }
+  | { kind: 'write-review'; providerId: string; bookingId?: string; staffId?: string }
+  | { kind: 'book'; providerId: string; serviceId?: string; staffId?: string; lookId?: string; rescheduleOf?: string; initialDate?: string; initialTime?: string; initialParty?: number; initialPayment?: PaymentMethod; initialNote?: string }
+  | { kind: 'book-review'; providerId: string; serviceId: string; staffId?: string; payment: PaymentMethod; date: string; time: string; party: number; note?: string; lookId?: string; rescheduleOf?: string }
+  | { kind: 'book-success'; bookingId: string }
+  | { kind: 'booking-detail'; bookingId: string }
+  | { kind: 'edit-profile' }
+  | { kind: 'city-picker' }
+  | { kind: 'search' }
   | { kind: 'language' }
   | { kind: 'appearance' }
-  | { kind: 'faq' }
-  | { kind: 'terms' }
-  | { kind: 'help' }
-  | { kind: 'about' }
   | { kind: 'notifications' }
-  | { kind: 'edit-card' }
-  | { kind: 'account' }
-  | { kind: 'account-display-name' }
-  | { kind: 'account-email' }
-  | { kind: 'account-linked' }
-  | { kind: 'analytics' }
-  | { kind: 'invite' }
-  | { kind: 'search' }
-  | { kind: 'filter' }
-  | { kind: 'exchange'; name: string; role: string; accent: string; phone: string; email: string; website?: string; city: string }
+  | { kind: 'notif-prefs' }
+  | { kind: 'about' }
+  | { kind: 'help' }
+  | { kind: 'terms' }
+  | { kind: 'saved' }
+  | { kind: 'studio-generate'; look: LookKind }
+  | { kind: 'studio-compare'; lookIds: string[] }
+  | { kind: 'studio-result'; lookId: string }
 
 export type Nav = {
   go: (v: View) => void

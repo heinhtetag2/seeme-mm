@@ -25,12 +25,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             className="pointer-events-auto flex items-center gap-2 px-3.5 py-2 rounded-full bg-surface-higher/95 backdrop-blur-md border border-line/70 shadow-2xl animate-fade-in"
           >
             {t.kind === 'success' && (
-              <span className="h-5 w-5 rounded-full bg-emerald-500 grid place-items-center">
+              <span className="h-5 w-5 rounded-full bg-evergreen-50 grid place-items-center">
                 <Check size={12} strokeWidth={3} className="text-white" />
               </span>
             )}
             {t.kind === 'error' && (
-              <span className="h-5 w-5 rounded-full bg-rose-500 grid place-items-center">
+              <span className="h-5 w-5 rounded-full bg-rust-50 grid place-items-center">
                 <X size={12} strokeWidth={3} className="text-white" />
               </span>
             )}

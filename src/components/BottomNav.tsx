@@ -1,39 +1,56 @@
-import { Home, IdCard, Wand2, User } from 'lucide-react'
+import { Home, Compass, Sparkles, CalendarCheck, User } from 'lucide-react'
 import { useT } from '../i18n'
 
-export type Tab = 'home' | 'cardo' | 'ai' | 'me'
+export type Tab = 'home' | 'explore' | 'studio' | 'bookings' | 'me'
 
-const items: { key: Tab; tKey: string; Icon: typeof Home }[] = [
-  { key: 'home',  tKey: 'tab.home',  Icon: Home },
-  { key: 'cardo', tKey: 'tab.cards', Icon: IdCard },
-  { key: 'ai',    tKey: 'tab.ai',    Icon: Wand2 },
-  { key: 'me',    tKey: 'tab.me',    Icon: User },
+const items: { key: Tab; tKey: string; Icon: typeof Home; emphasis?: boolean }[] = [
+  { key: 'home',     tKey: 'tab.home',     Icon: Home },
+  { key: 'explore',  tKey: 'tab.explore',  Icon: Compass },
+  { key: 'bookings', tKey: 'tab.bookings', Icon: CalendarCheck },
+  { key: 'me',       tKey: 'tab.me',       Icon: User },
 ]
 
 export function BottomNav({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
   const t = useT()
   return (
-    <nav className="absolute bottom-0 inset-x-0 z-40 px-4 pb-6 pt-3 bg-gradient-to-t from-canvas via-canvas to-canvas/0">
-      <div className="flex items-center justify-between gap-1 bg-surface-elevated/95 backdrop-blur-xl rounded-full border border-line/60 shadow-soft px-2 py-2">
-        {items.map(({ key, tKey, Icon }) => {
+    <nav className="absolute bottom-0 inset-x-0 z-40 bg-canvas border-t border-line/60 px-2 pt-1.5 pb-5">
+      <div className="grid grid-cols-4">
+        {items.map(({ key, tKey, Icon, emphasis }) => {
           const label = t(tKey)
           const isActive = active === key
           return (
             <button
               key={key}
               onClick={() => onChange(key)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-full transition-all
-                ${isActive
-                  ? 'bg-active/80 shadow-inner border border-line/40'
-                  : 'bg-transparent border border-transparent'
-                }`}
+              className="relative flex flex-col items-center justify-center gap-1 py-2"
             >
-              <Icon
-                size={20}
-                strokeWidth={isActive ? 2.2 : 1.8}
-                className={isActive ? 'text-ink' : 'text-ink-muted'}
-              />
-              <span className={`text-[10.5px] leading-none ${isActive ? 'text-ink font-semibold' : 'text-ink-muted font-medium'}`}>
+              {isActive && (
+                <span className="absolute top-0 h-[2px] w-7 rounded-full bg-ink" />
+              )}
+              {emphasis ? (
+                <span
+                  className={`grid place-items-center h-7 w-7 rounded-full transition
+                    ${isActive
+                      ? 'bg-brand text-canvas'
+                      : 'bg-brand/12 text-brand'}`}
+                >
+                  <Icon
+                    size={15}
+                    strokeWidth={isActive ? 2.4 : 2}
+                    fill={isActive ? 'currentColor' : 'none'}
+                    fillOpacity={isActive ? 0.25 : 0}
+                  />
+                </span>
+              ) : (
+                <Icon
+                  size={20}
+                  strokeWidth={isActive ? 2.1 : 1.7}
+                  className={isActive ? 'text-ink' : 'text-ink-dim'}
+                  fill={isActive ? 'currentColor' : 'none'}
+                  fillOpacity={isActive ? 0.08 : 0}
+                />
+              )}
+              <span className={`text-[10.5px] leading-none ${isActive ? 'text-ink font-semibold' : 'text-ink-dim font-medium'}`}>
                 {label}
               </span>
             </button>

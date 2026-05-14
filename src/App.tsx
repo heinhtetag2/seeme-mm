@@ -1,48 +1,80 @@
 import { useState } from 'react'
-import { LayoutDashboard } from 'lucide-react'
 import { PhoneFrame } from './components/PhoneFrame'
-import { DashboardApp } from './dashboard/DashboardApp'
 import { BottomNav } from './components/BottomNav'
 import { TopBar } from './components/TopBar'
-import { HomeScreen } from './screens/HomeScreen'
-import { CardoScreen } from './screens/CardoScreen'
-import { RegisterScreen } from './screens/RegisterScreen'
-import { AICardScreen } from './screens/AICardScreen'
-import { MyInfoScreen } from './screens/MyInfoScreen'
-import { CardDetailScreen } from './screens/CardDetailScreen'
-import { EditContactScreen } from './screens/EditContactScreen'
-import { MyCardScreen } from './screens/MyCardScreen'
-import { AICreateScreen } from './screens/AICreateScreen'
-import { ScanScreen } from './screens/ScanScreen'
-import { ManualEntryScreen } from './screens/ManualEntryScreen'
-import { SettingsScreen } from './screens/SettingsScreen'
-import { NearbyScreen } from './screens/NearbyScreen'
-import { NotificationsScreen } from './screens/NotificationsScreen'
-import {
-  SubscriptionScreen, PrivacyScreen, SecurityScreen, DataStorageScreen,
-  LanguageScreen, AppearanceScreen, NoticeScreen, FAQScreen, TermsScreen,
-  HelpScreen, AboutScreen,
-  SecurityPhoneScreen, SecuritySessionScreen,
-} from './screens/SettingsSubScreens'
-import {
-  EditCardScreen, AccountScreen, EditDisplayNameScreen, EditRecoveryEmailScreen, LinkedAccountsScreen,
-  AnalyticsScreen, InviteScreen, SearchScreen, FilterScreen, ExchangeScreen,
-} from './screens/ExtraScreens'
 import { ToastProvider } from './components/Toast'
 import { OnboardingScreen } from './screens/OnboardingScreen'
+import { HomeScreen } from './screens/HomeScreen'
+import { ExploreScreen } from './screens/ExploreScreen'
+import { MyBookingsScreen } from './screens/MyBookingsScreen'
+import { MeScreen } from './screens/MeScreen'
+import { CategoryScreen } from './screens/CategoryScreen'
+import { ProviderScreen } from './screens/ProviderScreen'
+import { StaffProfileScreen } from './screens/StaffProfileScreen'
+import { WriteReviewScreen } from './screens/WriteReviewScreen'
+import { BookFlowScreen } from './screens/BookFlowScreen'
+import { BookReviewScreen } from './screens/BookReviewScreen'
+import { BookSuccessScreen } from './screens/BookSuccessScreen'
+import { BookingDetailScreen } from './screens/BookingDetailScreen'
+import { NotificationsScreen } from './screens/NotificationsScreen'
+import { CityPickerScreen } from './screens/CityPickerScreen'
+import { SearchScreen } from './screens/SearchScreen'
+import { StudioScreen } from './screens/StudioScreen'
+import { StudioGenerateScreen } from './screens/StudioGenerateScreen'
+import { StudioCompareScreen } from './screens/StudioCompareScreen'
+import { StudioResultScreen } from './screens/StudioResultScreen'
+import {
+  EditProfileScreen, LanguageScreen, AppearanceScreen, NotifPrefsScreen,
+  AboutScreen, HelpScreen, TermsScreen,
+} from './screens/SettingsScreens'
+import { SavedScreen } from './screens/SavedScreen'
 import { useTheme, useAccent } from './theme'
+import { me, REVIEWS_SEED, type Review } from './data'
 import type { Tab, View } from './nav'
-import type { Creation } from './data'
+import type { Booking } from './data'
+import type { GeneratedLook } from './studio'
 
 export default function App() {
   useTheme()
   useAccent()
   const [tab, setTab] = useState<Tab>('home')
   const [stack, setStack] = useState<View[]>([])
-  const [view, setView] = useState<'phone' | 'dashboard'>('phone')
-  const [creations, setCreations] = useState<Creation[]>([])
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [onboarded, setOnboarded] = useState(false)
+  const [city, setCity] = useState<string>(me.city)
+  const [exploreMode, setExploreMode] = useState<'list' | 'map'>('list')
+  /** All reviews — seeded + user-authored ones from this session. */
+  const [reviews, setReviews] = useState<Review[]>(REVIEWS_SEED)
+  /** Reviews the current user has marked helpful. */
+  const [helpfulIds, setHelpfulIds] = useState<Set<string>>(new Set())
+
+  const addReview = (r: Review) => setReviews((prev) => [r, ...prev])
+  const toggleHelpful = (id: string) =>
+    setHelpfulIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  /** All looks generated across the session, newest first. */
+  const [recentLooks, setRecentLooks] = useState<GeneratedLook[]>([])
+  /** Subset of recentLooks the user has hearted. */
+  const [savedLookIds, setSavedLookIds] = useState<Set<string>>(new Set())
+
+  const pushRecent = (looks: GeneratedLook[]) =>
+    setRecentLooks((prev) => [...looks, ...prev].slice(0, 40))
+  const saveLook = (l: GeneratedLook) => {
+    // Make sure the look is in the recent list so result screens can find it.
+    setRecentLooks((prev) => prev.some((x) => x.id === l.id) ? prev : [l, ...prev])
+    setSavedLookIds((prev) => new Set(prev).add(l.id))
+  }
+  const unsaveLook = (id: string) =>
+    setSavedLookIds((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  const savedLooks = recentLooks.filter((l) => savedLookIds.has(l.id))
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {
@@ -55,27 +87,28 @@ export default function App() {
 
   const current = stack[stack.length - 1]
   const inSubScreen = !!current
-  const showTopBar = !inSubScreen
-  const showBottomNav = !inSubScreen
+  const showShell = !inSubScreen
+  // Explore is a map-first screen; hide the global TopBar + radial glow there
+  // so the floating search and bottom sheet have room to breathe.
+  const showTopBar = showShell && tab !== 'explore'
 
   const go = (v: View) => setStack((s) => [...s, v])
   const back = () => setStack((s) => s.slice(0, -1))
   const goTab = (t: Tab) => { setStack([]); setTab(t) }
-  const addCreation = (c: Creation) => setCreations((prev) => [c, ...prev])
-  const removeCreation = (id: string) => setCreations((prev) => prev.filter((c) => c.id !== id))
-  const updateCreation = (id: string, patch: Partial<Creation>) =>
-    setCreations((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+  const addBooking = (b: Booking) => setBookings((prev) => [b, ...prev])
+  const cancelBooking = (id: string) =>
+    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'cancelled' } : b)))
 
   const handleLogout = () => {
     setStack([])
     setTab('home')
-    setCreations([])
+    setBookings([])
     setFavorites(new Set())
+    setRecentLooks([])
+    setSavedLookIds(new Set())
+    setReviews(REVIEWS_SEED)
+    setHelpfulIds(new Set())
     setOnboarded(false)
-  }
-
-  if (view === 'dashboard') {
-    return <DashboardApp onExit={() => setView('phone')} />
   }
 
   if (!onboarded) {
@@ -90,109 +123,194 @@ export default function App() {
 
   return (
     <div className="relative h-full w-full flex items-center justify-center bg-canvas overflow-auto">
-      {/* Dashboard launcher — absolute on the left of the phone */}
-      <button
-        onClick={() => setView('dashboard')}
-        className="hidden md:flex absolute left-6 lg:left-10 top-1/2 -translate-y-1/2 z-40 group items-center gap-2.5 h-12 pl-3 pr-4 rounded-full bg-surface-elevated/90 hover:bg-surface-higher border border-line/70 hover:border-brand/40 backdrop-blur transition shadow-soft"
-        aria-label="Open Swapo dashboard"
-      >
-        <span className="h-8 w-8 rounded-full bg-brand-gradient grid place-items-center shadow-glow">
-          <LayoutDashboard size={15} className="text-white" strokeWidth={2} />
-        </span>
-        <span className="text-[13px] font-semibold text-ink leading-tight text-left">
-          Dashboard
-          <span className="block text-[10.5px] font-medium text-ink-dim tracking-wide">Open web app</span>
-        </span>
-      </button>
-
       <PhoneFrame>
         <ToastProvider>
-        <div className="relative h-full w-full bg-canvas flex flex-col overflow-hidden">
-          {!inSubScreen && (
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-glow-radial" />
-          )}
+          <div className="relative h-full w-full bg-canvas flex flex-col overflow-hidden">
+            {showTopBar && (
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-glow-radial" />
+            )}
 
-          {showTopBar && (
-            <TopBar
-              onBellClick={() => go({ kind: 'notifications' })}
-              onScanClick={tab === 'me' || tab === 'ai' ? undefined : () => go({ kind: 'register' })}
-            />
-          )}
-
-          <main className="relative flex-1 overflow-y-auto scrollbar-hide pb-28">
-            {!inSubScreen && tab === 'home' && <HomeScreen go={go} setTab={goTab} />}
-            {!inSubScreen && tab === 'cardo' && <CardoScreen go={go} favorites={favorites} />}
-            {!inSubScreen && tab === 'ai' && (
-              <AICardScreen
-                go={go}
-                creations={creations}
-                onDelete={removeCreation}
-                onUpdate={updateCreation}
+            {showTopBar && (
+              <TopBar
+                city={city}
+                onCityClick={() => go({ kind: 'city-picker' })}
+                onBellClick={() => go({ kind: 'notifications' })}
               />
             )}
-            {!inSubScreen && tab === 'me' && <MyInfoScreen go={go} onLogout={handleLogout} />}
-          </main>
 
-          {/* Sub-screens */}
-          {current?.kind === 'card-detail' && (
-            <CardDetailScreen
-              contact={current.contact}
-              onBack={back}
-              go={go}
-              isFavorite={favorites.has(current.contact.id)}
-              onToggleFavorite={() => toggleFavorite(current.contact.id)}
-            />
-          )}
-          {current?.kind === 'edit-contact' && (
-            <EditContactScreen contact={current.contact} onBack={back} />
-          )}
-          {current?.kind === 'my-card' && <MyCardScreen onBack={back} go={go} />}
-          {current?.kind === 'ai-create' && <AICreateScreen onBack={back} mode={current.mode} onSave={addCreation} />}
-          {current?.kind === 'register' && <RegisterScreen go={go} onBack={back} />}
-          {current?.kind === 'scan' && <ScanScreen onBack={back} onDone={() => goTab('cardo')} mode="card" />}
-          {current?.kind === 'manual' && <ManualEntryScreen onBack={back} onDone={() => goTab('cardo')} />}
-          {current?.kind === 'qr-scan' && <ScanScreen onBack={back} onDone={() => goTab('cardo')} mode="qr" />}
-          {current?.kind === 'settings' && <SettingsScreen onBack={back} go={go} onLogout={handleLogout} />}
-          {current?.kind === 'security-phone' && <SecurityPhoneScreen onBack={back} />}
-          {current?.kind === 'security-session' && <SecuritySessionScreen onBack={back} device={current.device} />}
-          {current?.kind === 'nearby' && <NearbyScreen onBack={back} go={go} />}
-          {current?.kind === 'subscription' && <SubscriptionScreen onBack={back} />}
-          {current?.kind === 'privacy' && <PrivacyScreen onBack={back} />}
-          {current?.kind === 'security' && <SecurityScreen onBack={back} go={go} />}
-          {current?.kind === 'data-storage' && <DataStorageScreen onBack={back} />}
-          {current?.kind === 'language' && <LanguageScreen onBack={back} />}
-          {current?.kind === 'appearance' && <AppearanceScreen onBack={back} />}
-          {current?.kind === 'notice' && <NoticeScreen onBack={back} />}
-          {current?.kind === 'faq' && <FAQScreen onBack={back} />}
-          {current?.kind === 'terms' && <TermsScreen onBack={back} />}
-          {current?.kind === 'help' && <HelpScreen onBack={back} />}
-          {current?.kind === 'about' && <AboutScreen onBack={back} />}
-          {current?.kind === 'notifications' && <NotificationsScreen onBack={back} go={go} />}
-          {current?.kind === 'edit-card' && <EditCardScreen onBack={back} />}
-          {current?.kind === 'account' && <AccountScreen onBack={back} go={go} />}
-          {current?.kind === 'account-display-name' && <EditDisplayNameScreen onBack={back} />}
-          {current?.kind === 'account-email' && <EditRecoveryEmailScreen onBack={back} />}
-          {current?.kind === 'account-linked' && <LinkedAccountsScreen onBack={back} />}
-          {current?.kind === 'analytics' && <AnalyticsScreen onBack={back} />}
-          {current?.kind === 'invite' && <InviteScreen onBack={back} />}
-          {current?.kind === 'search' && <SearchScreen onBack={back} go={go} />}
-          {current?.kind === 'filter' && <FilterScreen onBack={back} />}
-          {current?.kind === 'exchange' && (
-            <ExchangeScreen
-              onBack={back}
-              name={current.name}
-              role={current.role}
-              accent={current.accent}
-              phone={current.phone}
-              email={current.email}
-              website={current.website}
-              city={current.city}
-              onViewCard={(c) => setStack((s) => [...s.slice(0, -1), { kind: 'card-detail', contact: c }])}
-            />
-          )}
+            <main className={`relative flex-1 overflow-y-auto scrollbar-hide ${tab === 'explore' && !inSubScreen ? '' : 'pb-28'}`}>
+              {!inSubScreen && tab === 'home' && (
+                <HomeScreen
+                  go={go}
+                  setTab={goTab}
+                  city={city}
+                  onNearby={() => { setExploreMode('map'); goTab('explore') }}
+                />
+              )}
+              {!inSubScreen && tab === 'explore' && (
+                <ExploreScreen city={city} mode={exploreMode} setMode={setExploreMode} go={go} />
+              )}
+              {!inSubScreen && tab === 'studio' && (
+                <StudioScreen saved={savedLooks} recent={recentLooks} go={go} />
+              )}
+              {!inSubScreen && tab === 'bookings' && (
+                <MyBookingsScreen bookings={bookings} go={go} setTab={goTab} />
+              )}
+              {!inSubScreen && tab === 'me' && (
+                <MeScreen
+                  go={go}
+                  setTab={goTab}
+                  savedCount={favorites.size}
+                  bookingsCount={bookings.length}
+                  onLogout={handleLogout}
+                />
+              )}
+            </main>
 
-          {showBottomNav && <BottomNav active={tab} onChange={goTab} />}
-        </div>
+            {/* Sub-screens */}
+            {current?.kind === 'category' && (
+              <CategoryScreen categoryId={current.categoryId} onBack={back} go={go} />
+            )}
+            {current?.kind === 'provider' && (
+              <ProviderScreen
+                providerId={current.providerId}
+                onBack={back}
+                go={go}
+                isFavorite={favorites.has(current.providerId)}
+                onToggleFavorite={() => toggleFavorite(current.providerId)}
+                bookings={bookings}
+                reviews={reviews}
+                helpfulIds={helpfulIds}
+                onToggleHelpful={toggleHelpful}
+              />
+            )}
+            {current?.kind === 'staff' && (
+              <StaffProfileScreen
+                staffId={current.staffId}
+                reviews={reviews}
+                helpfulIds={helpfulIds}
+                onToggleHelpful={toggleHelpful}
+                onBack={back}
+                go={go}
+              />
+            )}
+            {current?.kind === 'write-review' && (
+              <WriteReviewScreen
+                providerId={current.providerId}
+                initialStaffId={current.staffId}
+                onBack={back}
+                onSubmit={addReview}
+              />
+            )}
+            {current?.kind === 'book' && (
+              <BookFlowScreen
+                providerId={current.providerId}
+                initialServiceId={current.serviceId}
+                initialStaffId={current.staffId}
+                initialDate={current.initialDate}
+                initialTime={current.initialTime}
+                initialParty={current.initialParty}
+                initialPayment={current.initialPayment}
+                initialNote={current.initialNote}
+                rescheduleOf={current.rescheduleOf}
+                lookId={current.lookId}
+                lookLookup={(id) => recentLooks.find((l) => l.id === id) ?? null}
+                onBack={back}
+                go={go}
+              />
+            )}
+            {current?.kind === 'book-review' && (
+              <BookReviewScreen
+                providerId={current.providerId}
+                serviceId={current.serviceId}
+                staffId={current.staffId}
+                payment={current.payment}
+                date={current.date}
+                time={current.time}
+                party={current.party}
+                note={current.note}
+                lookId={current.lookId}
+                lookLookup={(id) => recentLooks.find((l) => l.id === id) ?? null}
+                onBack={back}
+                go={go}
+                addBooking={addBooking}
+                rescheduleOf={current.rescheduleOf}
+                cancelBooking={cancelBooking}
+              />
+            )}
+            {current?.kind === 'book-success' && (
+              <BookSuccessScreen
+                bookingId={current.bookingId}
+                go={(v) => { setStack([v]) }}
+                onDone={() => { setStack([]); setTab('bookings') }}
+              />
+            )}
+            {current?.kind === 'booking-detail' && (
+              <BookingDetailScreen
+                bookingId={current.bookingId}
+                onBack={back}
+                go={go}
+                bookings={bookings}
+                cancelBooking={cancelBooking}
+                lookLookup={(id) => recentLooks.find((l) => l.id === id) ?? null}
+              />
+            )}
+            {current?.kind === 'city-picker' && (
+              <CityPickerScreen current={city} onPick={setCity} onBack={back} />
+            )}
+            {current?.kind === 'search' && (
+              <SearchScreen
+                onBack={back}
+                go={go}
+                city={city}
+                onMap={() => { setExploreMode('map'); setStack([]); setTab('explore') }}
+              />
+            )}
+            {current?.kind === 'studio-generate' && (
+              <StudioGenerateScreen
+                look={current.look}
+                onBack={back}
+                go={go}
+                savedIds={savedLookIds}
+                saveLook={saveLook}
+                unsaveLook={unsaveLook}
+                pushRecent={pushRecent}
+              />
+            )}
+            {current?.kind === 'studio-compare' && (
+              <StudioCompareScreen
+                lookIds={current.lookIds}
+                allLooks={recentLooks}
+                savedIds={savedLookIds}
+                saveLook={saveLook}
+                unsaveLook={unsaveLook}
+                onBack={back}
+                go={go}
+              />
+            )}
+            {current?.kind === 'studio-result' && (
+              <StudioResultScreen
+                lookId={current.lookId}
+                allLooks={recentLooks}
+                savedIds={savedLookIds}
+                saveLook={saveLook}
+                unsaveLook={unsaveLook}
+                onBack={back}
+                go={go}
+              />
+            )}
+            {current?.kind === 'edit-profile' && <EditProfileScreen onBack={back} />}
+            {current?.kind === 'language' && <LanguageScreen onBack={back} />}
+            {current?.kind === 'appearance' && <AppearanceScreen onBack={back} />}
+            {current?.kind === 'notifications' && <NotificationsScreen onBack={back} go={go} />}
+            {current?.kind === 'notif-prefs' && <NotifPrefsScreen onBack={back} />}
+            {current?.kind === 'about' && <AboutScreen onBack={back} />}
+            {current?.kind === 'help' && <HelpScreen onBack={back} />}
+            {current?.kind === 'terms' && <TermsScreen onBack={back} />}
+            {current?.kind === 'saved' && <SavedScreen favorites={favorites} onBack={back} go={go} />}
+
+            {showShell && <BottomNav active={tab} onChange={goTab} />}
+          </div>
         </ToastProvider>
       </PhoneFrame>
     </div>
