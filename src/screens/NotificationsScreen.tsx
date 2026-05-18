@@ -103,14 +103,14 @@ function Row({ n, onTap }: { n: AppNotification; onTap: () => void }) {
   const provider = n.providerId ? PROVIDER_BY_ID[n.providerId] : undefined
   const meta = provider
     ? `${provider.area}, ${provider.city}`
-    : n.kind === 'promo' ? 'Bookly' : null
+    : n.kind === 'promo' ? 'Seeme' : null
 
   return (
     <button onClick={onTap} className="w-full flex items-start gap-3 py-4 text-left">
-      <span className={`relative shrink-0 h-9 w-9 rounded-full grid place-items-center
-        ${n.unread ? 'bg-brand/22 text-brand' : 'bg-surface-higher text-ink-muted'}`}>
-        <Icon size={15} strokeWidth={1.9} />
-        {n.unread && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-brand ring-2 ring-canvas" />}
+      <span className={`relative shrink-0 h-9 w-9 grid place-items-center
+        ${n.unread ? 'text-brand' : 'text-ink-muted'}`}>
+        <Icon size={18} strokeWidth={1.7} />
+        {n.unread && <span className="absolute top-0 right-0.5 h-2 w-2 rounded-full bg-brand ring-2 ring-canvas" />}
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">

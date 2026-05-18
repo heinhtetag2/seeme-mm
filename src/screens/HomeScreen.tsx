@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowUpRight, ChevronRight, Crown, BadgePercent, Search, MapPin, type LucideIcon } from 'lucide-react'
+import { ArrowUpRight, ChevronRight, Search, MapPin, Sparkles, MessageSquareText, Gift, CalendarHeart, BadgeCheck, type LucideIcon } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { ProviderCard, ProviderRow } from '../components/ProviderCard'
 import { CategoryCover } from '../components/Cover'
@@ -7,6 +7,7 @@ import {
   CATEGORIES, featuredProviders, PROVIDERS, me, providersByCategory,
   type Category,
 } from '../data'
+import { POSTS_SEED, TOPICS, sortPosts, type Post } from '../community'
 import { useT } from '../i18n'
 import type { Tab, View } from '../nav'
 
@@ -27,6 +28,7 @@ export function HomeScreen({
   const featuredRest = featured.slice(1, 5)
   const popular = [...PROVIDERS].sort((a, b) => b.rating - a.rating).slice(0, 4)
   const nearbyCount = PROVIDERS.filter((p) => (city && city !== 'All cities' ? p.city === city : true)).length
+  const communityPicks = sortPosts(POSTS_SEED, 'trending').slice(0, 5)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
@@ -36,17 +38,16 @@ export function HomeScreen({
       {/* Editorial greeting */}
       <div className="space-y-1">
         <div className="kicker">{greeting}</div>
-        <h1 className="font-serif text-[32px] leading-[1.05] tracking-tight font-semibold">
+        <h1 className="font-serif text-[26px] leading-[1.05] tracking-tight font-semibold">
           {me.name.split(' ')[0]} — what shall we
           <span className="italic"> book </span>
           today?
         </h1>
       </div>
 
-      {/* Search — opens the dedicated search sub-screen (not the Explore tab),
-          so tapping feels like "opening search" instead of switching tabs. */}
+      {/* Search — jumps to the Explore tab where the real search lives. */}
       <button
-        onClick={() => go({ kind: 'search' })}
+        onClick={() => setTab('explore')}
         className="w-full flex items-center gap-2.5 h-12 px-4 rounded-full bg-surface-elevated border border-line/70 text-left hover:border-line-strong transition"
       >
         <Search size={16} className="text-ink-muted" strokeWidth={1.9} />
@@ -54,7 +55,7 @@ export function HomeScreen({
       </button>
 
       {/* Promo carousel */}
-      <BannerCarousel setTab={setTab} />
+      <BannerCarousel setTab={setTab} go={go} />
 
       {/* Categories — editorial 2-col mosaic with full gradient covers */}
       <section>
@@ -114,6 +115,36 @@ export function HomeScreen({
         </section>
       )}
 
+      {/* Community — trending posts from people who've been there */}
+      <section>
+        <SectionHeader
+          kicker="Community"
+          title="From your neighbors"
+          action={
+            <button onClick={() => setTab('community')} className="inline-flex items-center gap-0.5 text-[12px] font-semibold text-ink-muted hover:text-ink transition">
+              See all <ChevronRight size={13} strokeWidth={2.2} />
+            </button>
+          }
+        />
+        <div className="-mx-5">
+          {/* scroll-pl-5 tells snap-mandatory to leave 20px on the left when
+              snapping (so the first card aligns with the section title, not
+              flush with the screen edge). The leading spacer provides the same
+              20px visually at the initial scroll position. */}
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 scroll-pl-5 scroll-pr-5">
+            <div className="shrink-0 w-5" aria-hidden />
+            {communityPicks.map((post) => (
+              <CommunityHomeCard
+                key={post.id}
+                post={post}
+                onClick={() => go({ kind: 'community-post', postId: post.id })}
+              />
+            ))}
+            <div className="shrink-0 w-5" aria-hidden />
+          </div>
+        </div>
+      </section>
+
       <div className="divider" />
 
       {/* Popular */}
@@ -126,20 +157,40 @@ export function HomeScreen({
         </div>
       </section>
 
-      {/* Editorial promo footer */}
-      <section className="relative overflow-hidden rounded-2xl border border-line/70 bg-surface-elevated p-6">
-        <div className="kicker mb-2">{t('home.bookly.kicker')}</div>
-        <h3 className="font-serif text-[22px] leading-[1.1] tracking-tight font-semibold text-balance">
-          {t('home.pro.title')}
-        </h3>
-        <p className="text-[12.5px] text-ink-muted mt-2 max-w-[260px]">
-          {t('home.pro.sub')}
-        </p>
-        <button className="mt-4 inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-ink text-canvas text-[12.5px] font-semibold leading-none">
-          {t('home.pro.cta')} <ArrowUpRight size={13} strokeWidth={2.2} />
-        </button>
-      </section>
     </div>
+  )
+}
+
+function CommunityHomeCard({ post, onClick }: { post: Post; onClick: () => void }) {
+  const topic = TOPICS[post.topic]
+  const body = post.title ?? post.body
+  return (
+    <button
+      onClick={onClick}
+      className="snap-start shrink-0 w-[260px] text-left rounded-2xl border border-line/70 bg-surface-elevated p-4 flex flex-col gap-3 active:scale-[0.99] transition"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className={`inline-flex items-center gap-1 h-6 pl-2 pr-2.5 rounded-full text-[10.5px] font-semibold ${topic.toneSoft}`}>
+          <topic.Icon size={11} strokeWidth={2.2} />
+          {topic.label}
+        </span>
+        <span className="text-[10.5px] text-ink-dim tabular-nums">{post.when}</span>
+      </div>
+      <p className="text-[13px] leading-snug text-ink font-medium line-clamp-3 text-balance">
+        {body}
+      </p>
+      <div className="mt-auto flex items-center gap-2 text-[11px] text-ink-muted">
+        <span className="h-6 w-6 rounded-full bg-surface-higher grid place-items-center text-[10.5px] font-bold text-ink-muted">
+          {post.author.initial}
+        </span>
+        <span className="truncate">{post.author.name}</span>
+        <span className="text-ink-dim">·</span>
+        <span className="inline-flex items-center gap-0.5">
+          <MessageSquareText size={10} strokeWidth={2.2} className="text-ink-dim" />
+          {post.helpful}
+        </span>
+      </div>
+    </button>
   )
 }
 
@@ -240,48 +291,54 @@ type Banner = {
   title: React.ReactNode
   sub: string
   Icon: LucideIcon
-  /** 'filled' → full-bleed gradient card with white type.
-   *  'outlined' → soft tinted card with brand-coloured kicker on canvas. */
-  variant: 'filled' | 'outlined'
-  /** For filled: layered radial gradients (looks like an editorial cover). */
-  gradient?: string
-  /** For filled: fallback solid colour. */
-  fallback?: string
-  /** For outlined: border + soft surface classes. */
-  surface?: string
-  /** For outlined: bubble background + icon color. */
-  bubble?: string
-  /** Accent colour token for kicker + arrow (Tailwind text-… class). */
-  accent: string
+  /** Linear gradient CSS — full-bleed cover behind the white type. */
+  gradient: string
+  /** Solid fallback in case the gradient fails to paint. */
+  fallback: string
   onClick: () => void
 }
 
-function BannerCarousel({ setTab }: { setTab: (t: Tab) => void }) {
+function BannerCarousel({ setTab, go }: { setTab: (t: Tab) => void; go: (v: View) => void }) {
   const banners: Banner[] = [
     {
-      id: 'pro',
-      kicker: 'Bookly Pro',
-      title: <>Priority slots, <span className="italic">members-only</span> rates.</>,
-      sub: 'Skip the waitlist at top providers and unlock up to 20% off.',
-      Icon: Crown,
-      variant: 'filled',
-      gradient: 'linear-gradient(135deg, #c97a2e 0%, #8a4a18 100%)',
-      fallback: '#c97a2e',
-      bubble: 'bg-white/20 text-white',
-      accent: 'text-white/85',
-      onClick: () => setTab('me'),
+      id: 'welcome',
+      kicker: 'WELCOME GIFT',
+      title: <>5,000 MMK off your <span className="italic">first booking</span>.</>,
+      sub: 'Auto-applied at checkout at any verified pro.',
+      Icon: Gift,
+      gradient: 'linear-gradient(135deg, #a06b9c 0%, #6d3f7a 100%)',
+      fallback: '#7a4a85',
+      onClick: () => setTab('explore'),
+    },
+    {
+      id: 'studio',
+      kicker: 'AI STUDIO · NEW',
+      title: <>Try the look <span className="italic">before</span> you book.</>,
+      sub: 'Generate a hairstyle or nail design with AI. Bring it to your stylist.',
+      Icon: Sparkles,
+      gradient: 'linear-gradient(135deg, #2b6f88 0%, #1d4a5e 100%)',
+      fallback: '#235e76',
+      onClick: () => go({ kind: 'studio-generate', look: 'hair' }),
     },
     {
       id: 'weekend',
-      kicker: 'Weekend offer',
-      title: <>20% off at top spas <span className="italic">this Saturday</span>.</>,
-      sub: 'Members-only rate at award-winning spas in Yangon. Book before Sunday.',
-      Icon: BadgePercent,
-      variant: 'outlined',
-      surface: 'border-alpha-rust-20 bg-alpha-rust-10',
-      bubble: 'bg-rust-50 text-canvas',
-      accent: 'text-rust-50',
+      kicker: 'WEEKEND PICK',
+      title: <>Top spas in Yangon, <span className="italic">this Saturday</span>.</>,
+      sub: "Editor-picked salons with weekend openings still left.",
+      Icon: CalendarHeart,
+      gradient: 'linear-gradient(135deg, #c97a2e 0%, #8a4a18 100%)',
+      fallback: '#c97a2e',
       onClick: () => setTab('explore'),
+    },
+    {
+      id: 'verified',
+      kicker: 'WHY SEEME',
+      title: <>Every shop, <span className="italic">manually</span> verified.</>,
+      sub: 'No bait listings. Real photos, real pricing, real reviews from visitors.',
+      Icon: BadgeCheck,
+      gradient: 'linear-gradient(135deg, #3a7a52 0%, #1d4a32 100%)',
+      fallback: '#326e48',
+      onClick: () => setTab('community'),
     },
   ]
 
@@ -332,6 +389,18 @@ function BannerCarousel({ setTab }: { setTab: (t: Tab) => void }) {
     }
   }, [findActiveIdx])
 
+  // Scroll the carousel horizontally to a specific slide without touching the
+  // page's vertical scroll position. (scrollIntoView with block:'nearest' would
+  // pull the page up when the carousel has scrolled off-screen above.)
+  const scrollToIndex = useCallback((i: number) => {
+    const el = ref.current
+    if (!el) return
+    const slide = el.children[i] as HTMLElement | undefined
+    if (!slide) return
+    const targetLeft = slide.offsetLeft - (el.clientWidth - slide.offsetWidth) / 2
+    el.scrollTo({ left: targetLeft, behavior: 'smooth' })
+  }, [])
+
   // Auto-advance every 4.5s. Skipped while the user is mid-interaction.
   // Ping-pongs at the ends so we never jump from the last card back to the first.
   useEffect(() => {
@@ -350,19 +419,14 @@ function BannerCarousel({ setTab }: { setTab: (t: Tab) => void }) {
         directionRef.current = 1
         next = current + 1
       }
-      ;(slides[next] as HTMLElement).scrollIntoView({
-        behavior: 'smooth', block: 'nearest', inline: 'center',
-      })
+      scrollToIndex(next)
     }, 4500)
     return () => clearInterval(interval)
-  }, [findActiveIdx])
+  }, [findActiveIdx, scrollToIndex])
 
   const goTo = (i: number) => {
     lastInteractRef.current = Date.now()
-    const el = ref.current
-    if (!el) return
-    const slide = el.children[i] as HTMLElement | undefined
-    slide?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    scrollToIndex(i)
   }
 
   return (
@@ -393,31 +457,38 @@ function BannerCarousel({ setTab }: { setTab: (t: Tab) => void }) {
 }
 
 function BannerCard({ banner: b }: { banner: Banner }) {
-  const isFilled = b.variant === 'filled'
-
-  // Container: identical padding + flex layout for both variants so heights match.
-  // Only the surface (border+tint vs solid gradient) and text colors differ.
   return (
     <button
       onClick={b.onClick}
-      className={`relative w-full overflow-hidden rounded-2xl px-5 py-4 text-left active:scale-[0.99] transition
-        ${isFilled ? '' : `border ${b.surface}`}`}
-      style={isFilled ? { backgroundColor: b.fallback, backgroundImage: b.gradient } : undefined}
+      className="relative w-full overflow-hidden rounded-3xl text-left active:scale-[0.99] transition isolate"
+      style={{ backgroundColor: b.fallback, backgroundImage: b.gradient }}
     >
-      <div className="flex items-center gap-4">
-        <div className={`h-11 w-11 rounded-2xl ${b.bubble} grid place-items-center shrink-0`}>
-          <b.Icon size={18} strokeWidth={2.2} fill="currentColor" fillOpacity={0.2} />
+      {/* Watermark icon — large, faded, sits behind the type */}
+      <b.Icon
+        size={180}
+        strokeWidth={1.1}
+        className="absolute -right-6 -bottom-10 text-white/10 pointer-events-none -z-10"
+        aria-hidden
+      />
+      {/* Soft top-left highlight to add depth to the gradient */}
+      <span
+        className="absolute -top-10 -left-10 h-40 w-40 rounded-full bg-white/10 blur-2xl pointer-events-none -z-10"
+        aria-hidden
+      />
+
+      <div className="px-5 pt-5 pb-5 flex flex-col gap-2.5 min-h-[160px]">
+        <div className="flex items-center justify-between">
+          <div className="kicker text-white/75 tracking-[0.08em]">{b.kicker}</div>
+          <span className="h-7 w-7 rounded-full bg-white/15 backdrop-blur grid place-items-center shrink-0">
+            <ArrowUpRight size={13} strokeWidth={2.4} className="text-white" />
+          </span>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className={`kicker mb-0.5 ${b.accent}`}>{b.kicker}</div>
-          <div className={`font-serif text-[17px] leading-tight font-semibold tracking-tight ${isFilled ? 'text-white' : ''}`}>
-            {b.title}
-          </div>
-          <div className={`text-[11.5px] mt-1 ${isFilled ? 'text-white/75' : 'text-ink-muted'}`}>
-            {b.sub}
-          </div>
-        </div>
-        <ArrowUpRight size={16} strokeWidth={2.2} className={`${isFilled ? 'text-white' : b.accent} shrink-0`} />
+        <h3 className="font-serif text-[22px] leading-[1.1] tracking-tight font-semibold text-white text-balance max-w-[88%]">
+          {b.title}
+        </h3>
+        <p className="text-[11.5px] text-white/75 leading-relaxed max-w-[90%] mt-auto">
+          {b.sub}
+        </p>
       </div>
     </button>
   )

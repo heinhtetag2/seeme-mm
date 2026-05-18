@@ -1,4 +1,4 @@
-import { Star, ShieldCheck, Sparkles } from 'lucide-react'
+import { Star, CalendarX2, CircleCheck, Flame, BadgeCheck, Video, DoorOpen, Award, Gift, type LucideIcon } from 'lucide-react'
 import { CATEGORY_BY_ID, formatMMK, formatDuration, type Provider } from '../data'
 import { ProviderCover } from './Cover'
 import { useT } from '../i18n'
@@ -111,18 +111,81 @@ export function ProviderRow({ provider, onClick }: { provider: Provider; onClick
           <span className="text-ink font-semibold">{formatMMK(cheapestService.price)}</span>
         </div>
 
-        {/* Soft tinted pills — booking perks */}
-        <div className="flex flex-wrap gap-1.5 mt-2.5">
-          <span className="inline-flex items-center gap-1 h-6 pl-1.5 pr-2.5 rounded-full bg-alpha-evergreen-10 text-evergreen-60 text-[11px] font-semibold">
-            <ShieldCheck size={11.5} strokeWidth={2.2} />
-            {t('card.freeCancellation')}
-          </span>
-          <span className="inline-flex items-center gap-1 h-6 pl-1.5 pr-2.5 rounded-full bg-alpha-iris-10 text-iris-60 text-[11px] font-semibold">
-            <Sparkles size={11.5} strokeWidth={2.2} />
-            {t('card.earnRewards')}
-          </span>
+        {/* Soft tinted pills — booking perks. Picked per provider so cards differ. */}
+        <div className="mt-2.5">
+          <ProviderBadges provider={provider} />
         </div>
       </div>
     </button>
   )
+}
+
+/** Pill-row of provider badges. Same picker used everywhere so list and
+ *  detail pages stay consistent for a given provider. */
+export function ProviderBadges({ provider, max = 2 }: { provider: Provider; max?: number }) {
+  const t = useT()
+  const picked = pickBadges(provider, max)
+  if (picked.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {picked.map(({ key, Icon, labelKey, tone }) => (
+        <span
+          key={key}
+          className={`inline-flex items-center gap-1 h-6 pl-1.5 pr-2.5 rounded-full text-[11px] font-semibold ${tone}`}
+        >
+          <Icon size={11.5} strokeWidth={2.2} />
+          {t(labelKey)}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+type Badge = { key: string; Icon: LucideIcon; labelKey: string; tone: string }
+
+const BADGES: Record<string, Omit<Badge, 'key'> & { key: string }> = {
+  // Green — trust / risk-free
+  freeCancel: { key: 'freeCancel', Icon: CalendarX2,  labelKey: 'card.freeCancellation', tone: 'bg-alpha-evergreen-10 text-evergreen-60' },
+  // Teal — fast / digital confirmation
+  instant:    { key: 'instant',    Icon: CircleCheck, labelKey: 'card.instantConfirm',   tone: 'bg-alpha-tropic-10 text-tropic-70' },
+  // Purple — premium / award quality
+  topRated:   { key: 'topRated',   Icon: Award,       labelKey: 'card.topRated',         tone: 'bg-alpha-iris-10 text-iris-60' },
+  // Blue — official credential
+  verified:   { key: 'verified',   Icon: BadgeCheck,  labelKey: 'card.verified',         tone: 'bg-alpha-ocean-10 text-ocean-70' },
+  // Blue — remote / online consult
+  telehealth: { key: 'telehealth', Icon: Video,       labelKey: 'card.telehealth',       tone: 'bg-alpha-ocean-10 text-ocean-70' },
+  // Light green — welcoming / no appointment
+  walkIn:     { key: 'walkIn',     Icon: DoorOpen,    labelKey: 'card.walkIn',           tone: 'bg-alpha-moss-10 text-moss-70' },
+  // Orange — hot / trending
+  popular:    { key: 'popular',    Icon: Flame,       labelKey: 'card.popular',          tone: 'bg-alpha-ember-10 text-ember-60' },
+  // Pink — gifts / perks
+  rewards:    { key: 'rewards',    Icon: Gift,        labelKey: 'card.earnRewards',      tone: 'bg-alpha-sakura-10 text-sakura-70' },
+}
+
+/** Per-provider badge picker — chooses up to 2, biased to highlight what's
+ *  most distinctive about that provider, and avoids two same-tone badges so
+ *  the row reads as varied. */
+function pickBadges(p: Provider, max = 2): Badge[] {
+  const out: Badge[] = []
+  const toneOf = (b: Badge) => b.tone.split(' ')[0] // dedupe by bg color
+  const push = (k: keyof typeof BADGES) => {
+    if (out.length >= max) return
+    const b = BADGES[k]
+    if (out.some((x) => x.key === b.key || toneOf(x) === toneOf(b))) return
+    out.push(b)
+  }
+
+  // Lead with traits, alternating tones so cards read varied at-a-glance.
+  if (p.rating >= 4.85 && p.reviewCount >= 200) push('topRated')   // purple
+  if (p.verified) push('verified')                                 // blue
+  if (p.reviewCount >= 300) push('popular')                        // orange
+  if (p.tags?.some((t) => /telehealth/i.test(t))) push('telehealth') // blue (deduped vs verified)
+  if (p.instantConfirm) push('instant')                            // teal
+  if (p.tags?.some((t) => /walk[- ]?in/i.test(t))) push('walkIn')  // light green
+  if (p.featured) push('rewards')                                  // pink
+
+  // Fill remaining slots with safe defaults so every card has at least one.
+  push('freeCancel')
+  push('rewards')
+  return out.slice(0, max)
 }

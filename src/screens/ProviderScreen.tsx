@@ -5,7 +5,7 @@ import { ProviderCover } from '../components/Cover'
 import { ReviewCard, RatingSummary } from '../components/Reviews'
 import { StaffCard, StaffAvatar } from '../components/StaffCard'
 import { MiniMap } from '../components/MiniMap'
-import { InstantConfirmBadge, PayInAppBadge } from '../components/PaymentPicker'
+import { ProviderBadges } from '../components/ProviderCard'
 import {
   CATEGORY_BY_ID,
   formatDuration,
@@ -86,8 +86,6 @@ export function ProviderScreen({
   })
   const visibleReviews = showAllReviews ? filtered : filtered.slice(0, 3)
 
-  const canPayInApp = (provider.paymentMethods ?? []).some((m) => m !== 'cash')
-
   return (
     <div className="absolute inset-0 z-30 bg-canvas flex flex-col animate-slide-up">
       <div className="flex-1 overflow-y-auto scrollbar-hide">
@@ -148,10 +146,9 @@ export function ProviderScreen({
           )}
         </div>
 
-        {/* Trust badges */}
-        <div className="px-5 mt-3 flex flex-wrap gap-1.5">
-          {provider.instantConfirm && <InstantConfirmBadge />}
-          {canPayInApp && <PayInAppBadge />}
+        {/* Trust badges — same per-provider picks as the list card */}
+        <div className="px-5 mt-3">
+          <ProviderBadges provider={provider} max={3} />
         </div>
 
         {/* Upcoming-booking banner */}
@@ -332,11 +329,11 @@ export function ProviderScreen({
 
           {/* Filters */}
           <div className="mt-5 flex gap-1.5 overflow-x-auto -mx-5 px-5 pb-1 scrollbar-hide">
-            <FilterChip active={filter === 'all'}          onClick={() => setFilter('all')}>All</FilterChip>
-            <FilterChip active={filter === '5'}            onClick={() => setFilter('5')}>5 stars</FilterChip>
-            <FilterChip active={filter === '4'}            onClick={() => setFilter('4')}>4 stars</FilterChip>
-            <FilterChip active={filter === '3'}            onClick={() => setFilter('3')}>3 & below</FilterChip>
-            <FilterChip active={filter === 'with-comment'} onClick={() => setFilter('with-comment')}>With comment</FilterChip>
+            <FilterChip active={filter === 'all'}          onClick={() => setFilter('all')}>{t('provider.review.all')}</FilterChip>
+            <FilterChip active={filter === '5'}            onClick={() => setFilter('5')}>{t('provider.review.5')}</FilterChip>
+            <FilterChip active={filter === '4'}            onClick={() => setFilter('4')}>{t('provider.review.4')}</FilterChip>
+            <FilterChip active={filter === '3'}            onClick={() => setFilter('3')}>{t('provider.review.3')}</FilterChip>
+            <FilterChip active={filter === 'with-comment'} onClick={() => setFilter('with-comment')}>{t('provider.review.withComment')}</FilterChip>
           </div>
 
           {/* List */}
@@ -532,11 +529,11 @@ function Practical({
   value: string
 }) {
   return (
-    <div className="flex items-baseline gap-3">
-      <Icon size={14} strokeWidth={1.9} className="text-ink-dim shrink-0" />
+    <div className="flex items-start gap-3">
+      <Icon size={14} strokeWidth={1.9} className="text-ink-dim shrink-0 mt-px" />
       <div>
-        <div className="text-[11px] text-ink-dim font-medium">{label}</div>
-        <div className="text-[13.5px] mt-0.5">{value}</div>
+        <div className="text-[11px] text-ink-dim font-medium leading-none">{label}</div>
+        <div className="text-[13.5px] mt-1">{value}</div>
       </div>
     </div>
   )

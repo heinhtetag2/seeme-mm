@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import {
-  Stethoscope, Sparkles, Wrench, Dumbbell, GraduationCap, Car,
+  Stethoscope, Scissors, Wrench, Dumbbell, GraduationCap, Car,
   type LucideProps,
 } from 'lucide-react'
 
@@ -34,7 +34,7 @@ export const CATEGORIES: Category[] = [
     id: 'spa',
     name: 'Spa & Salon',
     tagline: 'Hair, nails, massage',
-    Icon: Sparkles,
+    Icon: Scissors,
     gradient: 'from-rust-50 to-sakura-50',
     tint: 'text-rust-50',
     soft: 'bg-alpha-rust-20',
@@ -159,7 +159,7 @@ export type Provider = {
   tags: string[]
   about: string
   services: ServiceItem[]
-  /** Verified by Bookly badge. */
+  /** Verified by Seeme badge. */
   verified?: boolean
   /** Featured on home. */
   featured?: boolean
@@ -637,6 +637,394 @@ const PROVIDERS_RAW: Provider[] = [
       { id: 's2', name: 'Battery replacement', duration: 45, price: 30000 },
     ],
   },
+
+  /* ── Naypyidaw ──────────────────────────────────────── */
+  {
+    id: 'p-npt-doc-1',
+    category: 'doctor',
+    name: 'Dr. Khin Mar Oo',
+    title: 'GP & Family Medicine',
+    city: 'Naypyidaw',
+    area: 'Zabuthiri · Yarzathingaha Rd',
+    rating: 4.8,
+    reviewCount: 142,
+    hours: baseHours,
+    distanceKm: 0.9,
+    tags: ['English', 'Telehealth'],
+    about: 'Family medicine clinic serving Naypyidaw residents and visiting officials.',
+    services: [
+      { id: 's1', name: 'General consultation', duration: 30, price: 22000 },
+      { id: 's2', name: 'Telehealth video', duration: 20, price: 16000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'p-npt-spa-1',
+    category: 'spa',
+    name: 'Capital Wellness',
+    title: 'Day spa & massage',
+    city: 'Naypyidaw',
+    area: 'Ottarathiri · Hotel Zone',
+    rating: 4.7,
+    reviewCount: 78,
+    hours: 'Daily · 10:00 – 22:00',
+    distanceKm: 2.1,
+    tags: ['Couples', 'Sauna'],
+    about: 'Quiet hotel-zone spa with traditional Burmese and aromatherapy massage.',
+    services: [
+      { id: 's1', name: 'Traditional massage', duration: 60, price: 35000 },
+      { id: 's2', name: 'Aromatherapy', duration: 90, price: 55000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'p-npt-home-1',
+    category: 'home',
+    name: 'CapitalClean Services',
+    title: 'Home & office cleaning',
+    city: 'Naypyidaw',
+    area: 'Pyinmana · Govt Quarters',
+    rating: 4.6,
+    reviewCount: 54,
+    hours: 'Mon–Sat · 8:00 – 18:00',
+    distanceKm: 3.4,
+    tags: ['Move-in/out', 'Office'],
+    about: 'Trained cleaning crews serving government quarters and condos.',
+    services: [
+      { id: 's1', name: 'Standard clean (2 br)', duration: 120, price: 30000 },
+      { id: 's2', name: 'Office clean', duration: 180, price: 60000 },
+    ],
+  },
+  {
+    id: 'p-npt-tutor-1',
+    category: 'tutor',
+    name: 'Saya U Min Naing',
+    title: 'IELTS & English coaching',
+    city: 'Naypyidaw',
+    area: 'Pobbathiri · Govt Office Rd',
+    rating: 4.9,
+    reviewCount: 67,
+    hours: 'Mon–Fri · 16:00 – 21:00',
+    distanceKm: 1.6,
+    tags: ['IELTS', 'Speaking'],
+    about: 'IELTS coaching with a focus on speaking confidence for civil-service staff.',
+    services: [
+      { id: 's1', name: '1-on-1 hour', duration: 60, price: 18000 },
+      { id: 's2', name: 'Speaking mock', duration: 30, price: 10000 },
+    ],
+    featured: true,
+  },
+
+  /* ── Bago ──────────────────────────────────────── */
+  {
+    id: 'p-bgo-doc-1',
+    category: 'doctor',
+    name: 'Dr. Tin Aye',
+    title: 'Pediatrician',
+    city: 'Bago',
+    area: 'Shwemawdaw · Main Rd',
+    rating: 4.8,
+    reviewCount: 104,
+    hours: baseHours,
+    distanceKm: 1.1,
+    tags: ['Pediatrics', 'Walk-in'],
+    about: 'Pediatrician with 20 years of practice near Shwemawdaw Pagoda.',
+    services: [
+      { id: 's1', name: 'Pediatric check-up', duration: 30, price: 20000 },
+      { id: 's2', name: 'Vaccination', duration: 20, price: 12000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'p-bgo-spa-1',
+    category: 'spa',
+    name: 'Shwemawdaw Spa',
+    title: 'Massage & beauty',
+    city: 'Bago',
+    area: 'Hintha Quarter',
+    rating: 4.6,
+    reviewCount: 62,
+    hours: 'Daily · 10:00 – 21:00',
+    distanceKm: 1.8,
+    tags: ['Walk-in', 'Couples'],
+    about: 'Local favorite spa near the famous Hintha statue, popular with weekend pilgrims.',
+    services: [
+      { id: 's1', name: 'Traditional massage', duration: 60, price: 25000 },
+      { id: 's2', name: 'Facial', duration: 60, price: 28000 },
+    ],
+  },
+  {
+    id: 'p-bgo-home-1',
+    category: 'home',
+    name: 'Bago Home Helpers',
+    title: 'House cleaning crew',
+    city: 'Bago',
+    area: 'Citywide',
+    rating: 4.5,
+    reviewCount: 38,
+    hours: 'Mon–Sat · 8:00 – 17:00',
+    distanceKm: 2.5,
+    tags: ['Eco', 'Same-day'],
+    about: 'Family-run cleaning service covering Bago and nearby townships.',
+    services: [
+      { id: 's1', name: 'Standard clean', duration: 120, price: 25000 },
+      { id: 's2', name: 'Deep clean', duration: 240, price: 50000 },
+    ],
+  },
+  {
+    id: 'p-bgo-auto-1',
+    category: 'auto',
+    name: 'Highway Auto Bago',
+    title: 'Auto repair & tire shop',
+    city: 'Bago',
+    area: 'Yangon-Mandalay Hwy km 64',
+    rating: 4.7,
+    reviewCount: 91,
+    hours: 'Daily · 7:00 – 20:00',
+    distanceKm: 4.2,
+    tags: ['Tire', 'Battery', 'Highway'],
+    about: 'Highway-side workshop trusted by long-distance drivers between Yangon and Naypyidaw.',
+    services: [
+      { id: 's1', name: 'Tire change', duration: 45, price: 18000 },
+      { id: 's2', name: 'Quick service', duration: 60, price: 25000 },
+    ],
+    verified: true,
+  },
+
+  /* ── Mawlamyine ──────────────────────────────────────── */
+  {
+    id: 'p-mlm-doc-1',
+    category: 'doctor',
+    name: 'Dr. Aye Mar',
+    title: 'Dental clinic',
+    city: 'Mawlamyine',
+    area: 'Strand Rd · Riverside',
+    rating: 4.9,
+    reviewCount: 156,
+    hours: baseHours,
+    distanceKm: 1.3,
+    tags: ['Painless', 'Whitening'],
+    about: 'Riverside dental clinic offering modern cleaning, whitening, and orthodontics.',
+    services: [
+      { id: 's1', name: 'Cleaning', duration: 45, price: 25000 },
+      { id: 's2', name: 'Whitening', duration: 60, price: 80000 },
+    ],
+    verified: true,
+    featured: true,
+  },
+  {
+    id: 'p-mlm-spa-1',
+    category: 'spa',
+    name: 'Thanlwin Spa',
+    title: 'Riverside spa',
+    city: 'Mawlamyine',
+    area: 'Strand Rd',
+    rating: 4.7,
+    reviewCount: 84,
+    hours: 'Daily · 10:00 – 22:00',
+    distanceKm: 1.5,
+    tags: ['River view', 'Couples'],
+    about: 'Quiet spa with windows onto the Thanlwin River. Famous for hot stone massage.',
+    services: [
+      { id: 's1', name: 'Hot stone massage', duration: 90, price: 45000 },
+      { id: 's2', name: 'Couples package', duration: 120, price: 90000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'p-mlm-fit-1',
+    category: 'fitness',
+    name: 'Riverside Yoga',
+    title: 'Yoga studio',
+    city: 'Mawlamyine',
+    area: 'Strand · Phattan',
+    rating: 4.8,
+    reviewCount: 47,
+    hours: 'Mon–Sat · 6:00 – 20:00',
+    distanceKm: 2.0,
+    tags: ['Yoga', 'Sunset class'],
+    about: 'Open-air yoga sessions with sunset classes on the riverfront.',
+    services: [
+      { id: 's1', name: 'Yoga drop-in', duration: 60, price: 8000 },
+      { id: 's2', name: 'Sunset class', duration: 75, price: 12000 },
+    ],
+  },
+
+  /* ── Taunggyi ──────────────────────────────────────── */
+  {
+    id: 'p-tgi-doc-1',
+    category: 'doctor',
+    name: 'Dr. Sai Lao',
+    title: 'GP & internal medicine',
+    city: 'Taunggyi',
+    area: 'Bogyoke Rd',
+    rating: 4.7,
+    reviewCount: 81,
+    hours: baseHours,
+    distanceKm: 1.4,
+    tags: ['English', 'Telehealth'],
+    about: 'Shan-state internist serving the hill capital. English and Shan spoken.',
+    services: [
+      { id: 's1', name: 'General consultation', duration: 30, price: 22000 },
+      { id: 's2', name: 'Health screening', duration: 90, price: 80000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'p-tgi-spa-1',
+    category: 'spa',
+    name: 'Highland Wellness',
+    title: 'Mountain spa & sauna',
+    city: 'Taunggyi',
+    area: 'Sao San Tun',
+    rating: 4.8,
+    reviewCount: 96,
+    hours: 'Daily · 10:00 – 21:00',
+    distanceKm: 2.6,
+    tags: ['Sauna', 'Mountain'],
+    about: 'Crisp-air spa overlooking the Shan hills. Best sauna in the region.',
+    services: [
+      { id: 's1', name: 'Sauna + massage', duration: 90, price: 40000 },
+      { id: 's2', name: 'Aromatherapy', duration: 60, price: 30000 },
+    ],
+    featured: true,
+  },
+  {
+    id: 'p-tgi-tutor-1',
+    category: 'tutor',
+    name: 'Saya Daw Mu Mu',
+    title: 'Math & physics tutor',
+    city: 'Taunggyi',
+    area: 'Yatanar · School Rd',
+    rating: 4.9,
+    reviewCount: 73,
+    hours: 'Daily · 15:00 – 20:00',
+    distanceKm: 1.0,
+    tags: ['Grade 10–11', 'Physics'],
+    about: 'Twenty years coaching matriculation students in Shan State.',
+    services: [
+      { id: 's1', name: '1-on-1 hour', duration: 60, price: 12000 },
+      { id: 's2', name: 'Group class', duration: 90, price: 8000 },
+    ],
+  },
+
+  /* ── Pathein ──────────────────────────────────────── */
+  {
+    id: 'p-pth-doc-1',
+    category: 'doctor',
+    name: 'Dr. Hla Win',
+    title: 'Family doctor',
+    city: 'Pathein',
+    area: 'Shwemokhtaw Rd',
+    rating: 4.7,
+    reviewCount: 68,
+    hours: baseHours,
+    distanceKm: 0.8,
+    tags: ['Walk-in', 'Pediatrics'],
+    about: 'Pathein family doctor with a focus on pediatric and prenatal care.',
+    services: [
+      { id: 's1', name: 'General consultation', duration: 30, price: 18000 },
+      { id: 's2', name: 'Pediatric visit', duration: 30, price: 20000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'p-pth-home-1',
+    category: 'home',
+    name: 'Delta Home Clean',
+    title: 'Home cleaning team',
+    city: 'Pathein',
+    area: 'Quarter 5',
+    rating: 4.6,
+    reviewCount: 32,
+    hours: 'Mon–Sat · 8:00 – 17:00',
+    distanceKm: 2.1,
+    tags: ['Eco', 'Standard'],
+    about: 'Local cleaning service trusted by riverside residences and shophouses.',
+    services: [
+      { id: 's1', name: 'Standard clean', duration: 120, price: 22000 },
+    ],
+  },
+
+  /* ── Bagan ──────────────────────────────────────── */
+  {
+    id: 'p-bgn-spa-1',
+    category: 'spa',
+    name: 'Bagan Temple Spa',
+    title: 'Boutique resort spa',
+    city: 'Bagan',
+    area: 'New Bagan · Hotel Zone',
+    rating: 4.9,
+    reviewCount: 211,
+    hours: 'Daily · 9:00 – 22:00',
+    distanceKm: 3.2,
+    tags: ['Resort', 'Hot stone', 'Couples'],
+    about: 'Resort spa popular with travelers visiting the Bagan plain — book ahead.',
+    services: [
+      { id: 's1', name: 'Aromatherapy', duration: 90, price: 65000 },
+      { id: 's2', name: 'Couples package', duration: 120, price: 120000 },
+    ],
+    verified: true,
+    featured: true,
+  },
+  {
+    id: 'p-bgn-tutor-1',
+    category: 'tutor',
+    name: 'Daw Cho Ma Ma',
+    title: 'Burmese culture & language',
+    city: 'Bagan',
+    area: 'Old Bagan',
+    rating: 4.9,
+    reviewCount: 38,
+    hours: 'Mon–Fri · 9:00 – 17:00',
+    distanceKm: 1.1,
+    tags: ['Burmese', 'Culture'],
+    about: 'Burmese language and cultural lessons for visitors and expats.',
+    services: [
+      { id: 's1', name: '1-on-1 hour', duration: 60, price: 25000 },
+      { id: 's2', name: 'Cultural walk', duration: 120, price: 40000 },
+    ],
+  },
+
+  /* ── Inle Lake ──────────────────────────────────────── */
+  {
+    id: 'p-inl-spa-1',
+    category: 'spa',
+    name: 'Inle Lakeside Spa',
+    title: 'Floating spa retreat',
+    city: 'Inle Lake',
+    area: 'Nyaungshwe · West Shore',
+    rating: 4.9,
+    reviewCount: 178,
+    hours: 'Daily · 10:00 – 21:00',
+    distanceKm: 4.5,
+    tags: ['Lake view', 'Hot stone'],
+    about: 'Stilted spa cottages over the lake. Long pier, quiet, sunset packages.',
+    services: [
+      { id: 's1', name: 'Lake-view massage', duration: 90, price: 55000 },
+      { id: 's2', name: 'Sunset package', duration: 120, price: 95000 },
+    ],
+    verified: true,
+    featured: true,
+  },
+  {
+    id: 'p-inl-fit-1',
+    category: 'fitness',
+    name: 'Lake Yoga School',
+    title: 'Yoga retreats',
+    city: 'Inle Lake',
+    area: 'Nyaungshwe',
+    rating: 4.8,
+    reviewCount: 56,
+    hours: 'Daily · 6:00 – 18:00',
+    distanceKm: 2.2,
+    tags: ['Yoga', 'Retreat'],
+    about: 'Multi-day retreats and drop-in classes overlooking the lake.',
+    services: [
+      { id: 's1', name: 'Drop-in class', duration: 75, price: 10000 },
+      { id: 's2', name: 'Half-day retreat', duration: 240, price: 45000 },
+    ],
+  },
 ]
 
 /** Default payment / instant-confirm / map coords filled in per category.
@@ -646,9 +1034,15 @@ function withProviderDefaults(p: Provider, index: number): Provider {
   // Synthetic coords in Yangon / Mandalay so the mini-map has something
   // believable to plot. Real app would fetch from a geo service.
   const cityCenter: Record<string, LatLng> = {
-    Yangon:    { lat: 16.84, lng: 96.16 },
-    Mandalay:  { lat: 21.97, lng: 96.08 },
-    Naypyidaw: { lat: 19.76, lng: 96.10 },
+    Yangon:      { lat: 16.84, lng: 96.16 },
+    Mandalay:    { lat: 21.97, lng: 96.08 },
+    Naypyidaw:   { lat: 19.76, lng: 96.10 },
+    Bago:        { lat: 17.34, lng: 96.48 },
+    Mawlamyine:  { lat: 16.49, lng: 97.63 },
+    Taunggyi:    { lat: 20.78, lng: 97.04 },
+    Pathein:     { lat: 16.78, lng: 94.74 },
+    Bagan:       { lat: 21.17, lng: 94.86 },
+    'Inle Lake': { lat: 20.55, lng: 96.92 },
   }
   const c = cityCenter[p.city] ?? cityCenter.Yangon
   // Decorrelated jitter — different multipliers for lat vs lng so providers
@@ -700,6 +1094,60 @@ export function searchProviders(q: string): Provider[] {
     p.tags.some((t) => t.toLowerCase().includes(needle)) ||
     CATEGORY_BY_ID[p.category].name.toLowerCase().includes(needle),
   )
+}
+
+/* ───────── Landmarks (neighborhoods + places) ───────── */
+
+export type Landmark = {
+  id: string
+  name: string
+  /** Address-style subtitle shown under the name. */
+  subtitle: string
+  city: string
+  coords: LatLng
+}
+
+export const LANDMARKS: Landmark[] = [
+  // Yangon — neighborhoods
+  { id: 'lm-bahan',      name: 'Bahan',           subtitle: 'Yangon, Myanmar',                  city: 'Yangon',  coords: { lat: 16.806, lng: 96.156 } },
+  { id: 'lm-sule',       name: 'Sule',            subtitle: 'Downtown · Yangon, Myanmar',       city: 'Yangon',  coords: { lat: 16.7758, lng: 96.1581 } },
+  { id: 'lm-yankin',     name: 'Yankin',          subtitle: 'Yangon, Myanmar',                  city: 'Yangon',  coords: { lat: 16.828, lng: 96.169 } },
+  { id: 'lm-hlaing',     name: 'Hlaing',          subtitle: 'Yangon, Myanmar',                  city: 'Yangon',  coords: { lat: 16.838, lng: 96.135 } },
+  { id: 'lm-kamayut',    name: 'Kamayut',         subtitle: 'Yangon, Myanmar',                  city: 'Yangon',  coords: { lat: 16.832, lng: 96.131 } },
+  { id: 'lm-sanchaung',  name: 'Sanchaung',       subtitle: 'Yangon, Myanmar',                  city: 'Yangon',  coords: { lat: 16.818, lng: 96.144 } },
+  // Yangon — landmarks
+  { id: 'lm-shwedagon',  name: 'Shwedagon Pagoda', subtitle: 'Singuttara Hill · Yangon',         city: 'Yangon',  coords: { lat: 16.7980, lng: 96.1495 } },
+  { id: 'lm-inya',       name: 'Inya Lake',       subtitle: 'Yangon, Myanmar',                  city: 'Yangon',  coords: { lat: 16.842, lng: 96.139 } },
+  { id: 'lm-kandawgyi',  name: 'Kandawgyi Lake',  subtitle: 'Bahan · Yangon',                   city: 'Yangon',  coords: { lat: 16.793, lng: 96.156 } },
+  { id: 'lm-yangonzoo',  name: 'Yangon Zoo',      subtitle: 'Kan Road · Yangon',                city: 'Yangon',  coords: { lat: 16.790, lng: 96.157 } },
+  { id: 'lm-junction',   name: 'Junction City',   subtitle: 'Downtown · Yangon',                city: 'Yangon',  coords: { lat: 16.7752, lng: 96.1556 } },
+  // Mandalay
+  { id: 'lm-mdy-palace', name: 'Mandalay Palace', subtitle: 'Aungmyethazan · Mandalay',         city: 'Mandalay', coords: { lat: 21.9986, lng: 96.1019 } },
+  { id: 'lm-mdy-hill',   name: 'Mandalay Hill',   subtitle: 'Chanayethazan · Mandalay',         city: 'Mandalay', coords: { lat: 22.005, lng: 96.114 } },
+  { id: 'lm-mahamuni',   name: 'Mahamuni Pagoda', subtitle: 'Chanmyathazi · Mandalay',          city: 'Mandalay', coords: { lat: 21.9523, lng: 96.0817 } },
+  // Naypyidaw
+  { id: 'lm-uppatasanti', name: 'Uppatasanti Pagoda', subtitle: 'Zabuthiri · Naypyidaw',        city: 'Naypyidaw', coords: { lat: 19.7575, lng: 96.1031 } },
+  { id: 'lm-myomakhaung', name: 'Myoma Market',   subtitle: 'Zabuthiri · Naypyidaw',            city: 'Naypyidaw', coords: { lat: 19.736, lng: 96.130 } },
+]
+
+export function searchLandmarks(q: string): Landmark[] {
+  const needle = q.trim().toLowerCase()
+  if (!needle) return []
+  return LANDMARKS.filter((l) =>
+    l.name.toLowerCase().includes(needle) || l.city.toLowerCase().includes(needle),
+  )
+}
+
+/** Great-circle distance in km between two coords. */
+export function kmBetween(a: LatLng, b: LatLng): number {
+  const R = 6371
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const lat1 = toRad(a.lat)
+  const lat2 = toRad(b.lat)
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h))
 }
 
 /* ───────── Bookings ───────── */

@@ -18,28 +18,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastCtx.Provider value={{ show }}>
       {children}
-      <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-32 z-[60] flex flex-col items-center gap-2">
+      <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-24 z-[60] flex flex-col items-center gap-1.5 w-full max-w-[88%]">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-center gap-2 px-3.5 py-2 rounded-full bg-surface-higher/95 backdrop-blur-md border border-line/70 shadow-2xl animate-fade-in"
+            className="pointer-events-auto inline-flex items-center gap-1.5 h-8 pl-2.5 pr-3 rounded-full bg-ink text-canvas animate-fade-in"
           >
-            {t.kind === 'success' && (
-              <span className="h-5 w-5 rounded-full bg-evergreen-50 grid place-items-center">
-                <Check size={12} strokeWidth={3} className="text-white" />
-              </span>
-            )}
-            {t.kind === 'error' && (
-              <span className="h-5 w-5 rounded-full bg-rust-50 grid place-items-center">
-                <X size={12} strokeWidth={3} className="text-white" />
-              </span>
-            )}
-            {t.kind === 'info' && (
-              <span className="h-5 w-5 rounded-full bg-brand grid place-items-center">
-                <AlertCircle size={12} strokeWidth={3} className="text-white" />
-              </span>
-            )}
-            <span className="text-[12.5px] font-medium pr-1">{t.text}</span>
+            {t.kind === 'success' && <Check size={12} strokeWidth={2.6} className="opacity-80" />}
+            {t.kind === 'error'   && <X size={12} strokeWidth={2.6} className="text-rust-30" />}
+            {t.kind === 'info'    && <AlertCircle size={12} strokeWidth={2.4} className="opacity-80" />}
+            <span className="text-[11.5px] font-medium tracking-tight leading-none">{t.text}</span>
           </div>
         ))}
       </div>

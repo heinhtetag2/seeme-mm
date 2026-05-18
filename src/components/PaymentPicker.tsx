@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Banknote, Smartphone, CreditCard, Zap, ShieldCheck, X, Plus, Loader2, Settings2 } from 'lucide-react'
+import { Check, Banknote, Smartphone, CreditCard, CircleCheck, ShieldCheck, X, Plus, Loader2, Settings2 } from 'lucide-react'
 import { PAYMENT_LABEL, PAYMENT_SUBLABEL, type PaymentMethod } from '../data'
 import { useT } from '../i18n'
 
@@ -324,7 +324,7 @@ export function InstantConfirmBadge({ size = 'sm' }: { size?: 'sm' | 'md' }) {
   const cls = size === 'md' ? 'h-7 text-[11.5px] px-3' : 'h-6 text-[10.5px] px-2.5'
   return (
     <span className={`inline-flex items-center gap-1 rounded-full bg-alpha-evergreen-10 text-evergreen-60 font-semibold ${cls}`}>
-      <Zap size={11} strokeWidth={2.4} fill="currentColor" />
+      <CircleCheck size={11.5} strokeWidth={2.4} />
       Instant confirmation
     </span>
   )

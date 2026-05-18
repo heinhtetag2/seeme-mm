@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, Minus, Plus, Sun, CloudSun, Moon, CalendarDays, ChevronLeft, ChevronRight, Flame, type LucideIcon } from 'lucide-react'
 import { SubScreenHeader } from '../components/SubScreenHeader'
 import { ProviderCover } from '../components/Cover'
@@ -67,7 +67,47 @@ export function BookFlowScreen({
 
   const service = provider.services.find((s) => s.id === serviceId) ?? provider.services[0]
   const slots = generateSlots(provider.hours)
-  const canContinue = !!serviceId && !!date && !!time
+
+  /* ── Availability validation ── */
+  const closedDays = useMemo(() => parseClosedDays(provider.hours), [provider.hours])
+  const closingHour = useMemo(() => parseHours(provider.hours).end, [provider.hours])
+  // Anchor "now" per date pick. Avoids per-render churn while still moving
+  // forward when the user advances days.
+  const now = useMemo(() => new Date(), [date])
+  const dateIsClosed = useMemo(() => isDayClosed(closedDays, date), [closedDays, date])
+
+  const unavailableSlots = useMemo(() => {
+    const set = new Set<string>()
+    const allSlots = [...slots.morning, ...slots.afternoon, ...slots.evening]
+    if (dateIsClosed) {
+      allSlots.forEach((t) => set.add(t))
+      return set
+    }
+    for (const t of allSlots) {
+      const reason = slotUnavailableReason({
+        providerId: provider.id,
+        isoDate: date,
+        time: t,
+        durationMin: service?.duration ?? 60,
+        closingHour,
+        now,
+      })
+      if (reason) set.add(t)
+    }
+    return set
+  }, [slots, dateIsClosed, date, service?.duration, closingHour, provider.id, now])
+
+  const totalSlots = slots.morning.length + slots.afternoon.length + slots.evening.length
+  const allTimesUnavailable = totalSlots > 0 && unavailableSlots.size >= totalSlots
+  const nextOpen = useMemo(() => nextOpenDate(date, closedDays), [date, closedDays])
+
+  // Drop any chosen time that has since become invalid (closed day, past, booked, etc.).
+  useEffect(() => {
+    if (time && unavailableSlots.has(time)) setTime('')
+  }, [time, unavailableSlots])
+
+  const canContinue =
+    !!serviceId && !!date && !!time && !dateIsClosed && !unavailableSlots.has(time)
 
   return (
     <div className="absolute inset-0 z-30 bg-canvas flex flex-col animate-slide-up">
@@ -171,15 +211,19 @@ export function BookFlowScreen({
       {/* Step: date — quick-pick chips + "Pick date" opens a full calendar sheet */}
       <Step kicker={staff.length > 0 ? 'Step 3' : 'Step 2'} title={t('book.step.date')}>
         <div className="flex flex-wrap gap-2">
-          {quickPicks.map((p) => (
-            <DateChip
-              key={p.iso}
-              selected={date === p.iso}
-              onClick={() => { setDate(p.iso); setTime('') }}
-            >
-              {p.label}
-            </DateChip>
-          ))}
+          {quickPicks.map((p) => {
+            const closed = isDayClosed(closedDays, p.iso)
+            return (
+              <DateChip
+                key={p.iso}
+                selected={date === p.iso}
+                disabled={closed}
+                onClick={() => { setDate(p.iso); setTime('') }}
+              >
+                {p.label}
+              </DateChip>
+            )
+          })}
           {/* Custom date pill — shows the picked date if it's not in the quick picks */}
           {!isQuickPick && (
             <DateChip selected onClick={() => setDateSheet(true)}>
@@ -194,13 +238,36 @@ export function BookFlowScreen({
             Pick date
           </button>
         </div>
+        {closedDays.length > 0 && (
+          <div className="mt-2.5 text-[11px] text-ink-dim">
+            Closed {closedDays.map((d) => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]).join(', ')}
+          </div>
+        )}
       </Step>
 
       {/* Step: time — grouped by part of day */}
       <Step kicker={staff.length > 0 ? 'Step 4' : 'Step 3'} title={t('book.step.when')}>
-        <TimeGroup Icon={Sun} label={t('book.label.morning')} slots={slots.morning} value={time} onPick={setTime} />
-        <TimeGroup Icon={CloudSun} label={t('book.label.afternoon')} slots={slots.afternoon} value={time} onPick={setTime} />
-        <TimeGroup Icon={Moon} label={t('book.label.evening')} slots={slots.evening} value={time} onPick={setTime} />
+        {dateIsClosed ? (
+          <UnavailableNotice
+            title="Closed this day"
+            sub={`Try ${formatChip(nextOpen)} instead.`}
+            actionLabel={`Switch to ${formatChip(nextOpen)}`}
+            onAction={() => { setDate(nextOpen); setTime('') }}
+          />
+        ) : allTimesUnavailable ? (
+          <UnavailableNotice
+            title="No times available"
+            sub="Every slot today is either past, booked, or wouldn't fit before closing."
+            actionLabel={`Try ${formatChip(nextOpen)}`}
+            onAction={() => { setDate(nextOpen); setTime('') }}
+          />
+        ) : (
+          <>
+            <TimeGroup Icon={Sun}     label={t('book.label.morning')}   slots={slots.morning}   value={time} onPick={setTime} unavailable={unavailableSlots} />
+            <TimeGroup Icon={CloudSun} label={t('book.label.afternoon')} slots={slots.afternoon} value={time} onPick={setTime} unavailable={unavailableSlots} />
+            <TimeGroup Icon={Moon}    label={t('book.label.evening')}   slots={slots.evening}   value={time} onPick={setTime} unavailable={unavailableSlots} />
+          </>
+        )}
       </Step>
 
       {/* Step: payment */}
@@ -242,6 +309,7 @@ export function BookFlowScreen({
       {dateSheet && (
         <DateSheet
           selected={date}
+          closedDays={closedDays}
           onPick={(picked) => { setDate(picked); setTime(''); setDateSheet(false) }}
           onClose={() => setDateSheet(false)}
         />
@@ -308,6 +376,28 @@ function BookingLookAttachment({
   )
 }
 
+function UnavailableNotice({
+  title, sub, actionLabel, onAction,
+}: {
+  title: string
+  sub: string
+  actionLabel: string
+  onAction: () => void
+}) {
+  return (
+    <div className="rounded-2xl border border-line/70 bg-surface-elevated px-4 py-5 text-center">
+      <div className="font-serif text-[15px] font-semibold tracking-tight">{title}</div>
+      <p className="text-[12px] text-ink-muted mt-1.5 max-w-[280px] mx-auto">{sub}</p>
+      <button
+        onClick={onAction}
+        className="mt-3.5 inline-flex items-center justify-center h-9 px-4 rounded-full bg-ink text-canvas text-[12px] font-semibold leading-none"
+      >
+        {actionLabel}
+      </button>
+    </div>
+  )
+}
+
 function Step({ kicker, title, children }: { kicker: string; title: string; children: React.ReactNode }) {
   return (
     <section className="px-5 pt-7">
@@ -319,15 +409,19 @@ function Step({ kicker, title, children }: { kicker: string; title: string; chil
 }
 
 function TimeGroup({
-  Icon, label, slots, value, onPick,
+  Icon, label, slots, value, onPick, unavailable,
 }: {
   Icon: LucideIcon
   label: string
   slots: string[]
   value: string
   onPick: (v: string) => void
+  unavailable: Set<string>
 }) {
   if (slots.length === 0) return null
+  // Hide the whole group if every slot in it is unavailable — the parent
+  // already shows a top-level "no times" notice when that's true for the day.
+  if (slots.every((s) => unavailable.has(s))) return null
   return (
     <div className="mb-4">
       <div className="flex items-center gap-1.5 text-[11px] text-ink-dim font-medium mb-2">
@@ -337,14 +431,18 @@ function TimeGroup({
       <div className="grid grid-cols-4 gap-1.5">
         {slots.map((s) => {
           const isSel = value === s
+          const isOff = unavailable.has(s)
           return (
             <button
               key={s}
-              onClick={() => onPick(s)}
+              onClick={() => !isOff && onPick(s)}
+              disabled={isOff}
               className={`h-10 rounded-full border text-[12px] font-semibold leading-none tabular-nums inline-flex items-center justify-center transition
-                ${isSel
-                  ? 'bg-ink text-canvas border-ink'
-                  : 'bg-surface-elevated border-line/70 text-ink-muted hover:border-line-strong hover:text-ink'}`}
+                ${isOff
+                  ? 'bg-surface-elevated border-line/70 text-ink-dim line-through cursor-not-allowed opacity-50'
+                  : isSel
+                    ? 'bg-ink text-canvas border-ink'
+                    : 'bg-surface-elevated border-line/70 text-ink-muted hover:border-line-strong hover:text-ink'}`}
             >
               {s}
             </button>
@@ -426,19 +524,23 @@ function formatChip(isoStr: string): string {
 }
 
 function DateChip({
-  selected, onClick, children,
+  selected, disabled = false, onClick, children,
 }: {
   selected: boolean
+  disabled?: boolean
   onClick: () => void
   children: React.ReactNode
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`shrink-0 inline-flex items-center justify-center h-10 px-4 rounded-full border text-[12.5px] font-semibold leading-none transition
-        ${selected
-          ? 'bg-ink text-canvas border-ink'
-          : 'bg-surface-elevated text-ink border-line/70 hover:border-line-strong'}`}
+        ${disabled
+          ? 'bg-surface-elevated text-ink-dim border-line/70 line-through cursor-not-allowed opacity-60'
+          : selected
+            ? 'bg-ink text-canvas border-ink'
+            : 'bg-surface-elevated text-ink border-line/70 hover:border-line-strong'}`}
     >
       {children}
     </button>
@@ -450,9 +552,10 @@ function DateChip({
  * Past dates are disabled. Tapping a day commits and closes the sheet.
  */
 function DateSheet({
-  selected, onPick, onClose,
+  selected, closedDays, onPick, onClose,
 }: {
   selected: string
+  closedDays: number[]
   onPick: (iso: string) => void
   onClose: () => void
 }) {
@@ -498,16 +601,19 @@ function DateSheet({
             if (!cell) return <div key={i} className="h-10" />
             const isSel = selected === cell.iso
             const isPast = cell.iso < todayStr
+            const isFar = isBeyondBookingWindow(cell.iso, now)
+            const isClosed = isDayClosed(closedDays, cell.iso)
+            const off = isPast || isFar || isClosed
             return (
               <button
                 key={cell.iso}
-                disabled={isPast}
+                disabled={off}
                 onClick={() => onPick(cell.iso)}
                 className={`h-10 rounded-full text-[13px] font-semibold leading-none tabular-nums inline-flex items-center justify-center transition
                   ${isSel
                     ? 'bg-ink text-canvas'
-                    : isPast
-                      ? 'text-ink-dim cursor-not-allowed'
+                    : off
+                      ? `text-ink-dim cursor-not-allowed ${isClosed && !isPast && !isFar ? 'line-through opacity-70' : ''}`
                       : 'text-ink hover:bg-surface-higher'}`}
               >
                 {cell.day}
@@ -542,10 +648,14 @@ function paymentLabel(m: PaymentMethod): string {
   return map[m]
 }
 
-function generateSlots(hours: string): { morning: string[]; afternoon: string[]; evening: string[] } {
+function parseHours(hours: string): { start: number; end: number } {
   const m = hours.match(/(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})/)
-  let start = 9, end = 18
-  if (m) { start = parseInt(m[1], 10); end = parseInt(m[3], 10) }
+  if (!m) return { start: 9, end: 18 }
+  return { start: parseInt(m[1], 10), end: parseInt(m[3], 10) }
+}
+
+function generateSlots(hours: string): { morning: string[]; afternoon: string[]; evening: string[] } {
+  const { start, end } = parseHours(hours)
   const all: string[] = []
   for (let h = start; h < end; h++) {
     all.push(`${pad(h)}:00`)
@@ -556,4 +666,105 @@ function generateSlots(hours: string): { morning: string[]; afternoon: string[];
     afternoon: all.filter((s) => parseInt(s, 10) >= 12 && parseInt(s, 10) < 17),
     evening: all.filter((s) => parseInt(s, 10) >= 17),
   }
+}
+
+/* ─────────── Availability helpers ───────────
+   Mock availability layer: closed-days from the hours prefix, lead-time floor,
+   max booking window, slot-overflow-past-closing, and deterministic mock-booked
+   slots so the UI shows realistic gaps. Real backend would replace
+   isSlotBooked + parseClosedDays with API calls. */
+
+const LEAD_TIME_MINUTES = 60
+const MAX_BOOKING_DAYS = 60
+
+/** Parse "Mon–Sat" / "Tue–Sun" / "Daily" prefix → days the shop is closed (0=Sun). */
+function parseClosedDays(hours: string): number[] {
+  if (/daily/i.test(hours)) return []
+  const NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const m = hours.match(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s*[–-]\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/)
+  if (!m) return []
+  const start = NAMES.indexOf(m[1])
+  const end = NAMES.indexOf(m[2])
+  if (start < 0 || end < 0) return []
+  const open = new Set<number>()
+  let d = start
+  while (true) {
+    open.add(d)
+    if (d === end) break
+    d = (d + 1) % 7
+  }
+  return [0, 1, 2, 3, 4, 5, 6].filter((x) => !open.has(x))
+}
+
+function minutesOfDay(time: string): number {
+  const [h, m] = time.split(':').map((x) => parseInt(x, 10))
+  return h * 60 + m
+}
+
+function dateAndTimeToDate(isoDate: string, time: string): Date {
+  return new Date(`${isoDate}T${time}:00`)
+}
+
+function isPastTime(isoDate: string, time: string, now: Date): boolean {
+  return dateAndTimeToDate(isoDate, time).getTime() <= now.getTime()
+}
+
+function isWithinLeadTime(isoDate: string, time: string, now: Date): boolean {
+  const slotMs = dateAndTimeToDate(isoDate, time).getTime()
+  return slotMs > now.getTime() && slotMs < now.getTime() + LEAD_TIME_MINUTES * 60_000
+}
+
+function wouldOverflowClosing(time: string, durationMin: number, closingHour: number): boolean {
+  return minutesOfDay(time) + durationMin > closingHour * 60
+}
+
+function isBeyondBookingWindow(isoDate: string, today: Date): boolean {
+  const slotMs = new Date(isoDate + 'T00:00:00').getTime()
+  const todayStart = new Date(today); todayStart.setHours(0, 0, 0, 0)
+  return slotMs > todayStart.getTime() + MAX_BOOKING_DAYS * 86_400_000
+}
+
+function isDayClosed(closedDays: number[], isoDate: string): boolean {
+  if (closedDays.length === 0) return false
+  return closedDays.includes(new Date(isoDate + 'T00:00:00').getDay())
+}
+
+/** Deterministic mock — ~25% of slots are booked. Stable per (provider, date, time). */
+function isSlotBooked(providerId: string, isoDate: string, time: string): boolean {
+  const key = `${providerId}|${isoDate}|${time}`
+  let h = 2166136261
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return (h >>> 0) % 100 < 25
+}
+
+type SlotReason = 'past' | 'lead' | 'overflow' | 'booked' | null
+
+function slotUnavailableReason(args: {
+  providerId: string
+  isoDate: string
+  time: string
+  durationMin: number
+  closingHour: number
+  now: Date
+}): SlotReason {
+  const { providerId, isoDate, time, durationMin, closingHour, now } = args
+  if (isPastTime(isoDate, time, now)) return 'past'
+  if (isWithinLeadTime(isoDate, time, now)) return 'lead'
+  if (wouldOverflowClosing(time, durationMin, closingHour)) return 'overflow'
+  if (isSlotBooked(providerId, isoDate, time)) return 'booked'
+  return null
+}
+
+/** Find the next selectable date forward from `fromIso`, skipping closed days. */
+function nextOpenDate(fromIso: string, closedDays: number[]): string {
+  if (closedDays.length === 0) return fromIso
+  const d = new Date(fromIso + 'T00:00:00')
+  for (let i = 0; i < 14; i++) {
+    d.setDate(d.getDate() + 1)
+    if (!closedDays.includes(d.getDay())) return iso(d)
+  }
+  return fromIso
 }

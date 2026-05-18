@@ -24,7 +24,7 @@ export function MyBookingsScreen({
   return (
     <div className="px-5 pt-2 pb-2 animate-fade-in">
       <div className="kicker mb-1.5">SCHEDULE</div>
-      <h1 className="font-serif text-[28px] leading-[1.05] tracking-tight font-semibold mb-5">
+      <h1 className="font-serif text-[26px] leading-[1.05] tracking-tight font-semibold mb-5">
         Your bookings.
       </h1>
 

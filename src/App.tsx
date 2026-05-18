@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { SquarePen } from 'lucide-react'
 import { PhoneFrame } from './components/PhoneFrame'
 import { BottomNav } from './components/BottomNav'
 import { TopBar } from './components/TopBar'
 import { ToastProvider } from './components/Toast'
 import { OnboardingScreen } from './screens/OnboardingScreen'
+import { AuthFlow, type AuthProfile } from './screens/AuthScreens'
 import { HomeScreen } from './screens/HomeScreen'
 import { ExploreScreen } from './screens/ExploreScreen'
 import { MyBookingsScreen } from './screens/MyBookingsScreen'
@@ -25,11 +27,16 @@ import { StudioCompareScreen } from './screens/StudioCompareScreen'
 import { StudioResultScreen } from './screens/StudioResultScreen'
 import {
   EditProfileScreen, LanguageScreen, AppearanceScreen, NotifPrefsScreen,
-  AboutScreen, HelpScreen, TermsScreen,
+  AboutScreen, HelpScreen, TermsScreen, AccountSettingsScreen, AccountChangeScreen,
 } from './screens/SettingsScreens'
 import { SavedScreen } from './screens/SavedScreen'
+import { CommunityScreen } from './screens/CommunityScreen'
+import { PostDetailScreen } from './screens/PostDetailScreen'
+import { ComposePostScreen } from './screens/ComposePostScreen'
+import { CommunitySearchScreen } from './screens/CommunitySearchScreen'
 import { useTheme, useAccent } from './theme'
 import { me, REVIEWS_SEED, type Review } from './data'
+import { POSTS_SEED, type Post, type Comment } from './community'
 import type { Tab, View } from './nav'
 import type { Booking } from './data'
 import type { GeneratedLook } from './studio'
@@ -42,6 +49,8 @@ export default function App() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [onboarded, setOnboarded] = useState(false)
+  const [authed, setAuthed] = useState(false)
+  const [profile, setProfile] = useState<AuthProfile>({ name: me.name, city: me.city, phone: me.phone })
   const [city, setCity] = useState<string>(me.city)
   const [exploreMode, setExploreMode] = useState<'list' | 'map'>('list')
   /** All reviews — seeded + user-authored ones from this session. */
@@ -56,6 +65,50 @@ export default function App() {
       if (next.has(id)) next.delete(id); else next.add(id)
       return next
     })
+  /** Community posts — seeded + ones the user wrote this session. */
+  const [posts, setPosts] = useState<Post[]>(POSTS_SEED)
+  /** Posts the current user has marked helpful. */
+  const [postHelpful, setPostHelpful] = useState<Set<string>>(new Set())
+
+  const addPost = (p: Post) => setPosts((prev) => [p, ...prev])
+  const togglePostHelpful = (id: string) =>
+    setPostHelpful((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  const addComment = (postId: string, body: string, parentCommentId?: string) => {
+    const author = { id: me.email, name: me.name, initial: me.name[0], verifiedVisitor: true, city: me.city }
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p
+        if (parentCommentId) {
+          return {
+            ...p,
+            comments: p.comments.map((c) =>
+              c.id === parentCommentId
+                ? {
+                    ...c,
+                    replies: [
+                      ...(c.replies ?? []),
+                      { id: `r-new-${Date.now()}`, author, body, when: 'just now', helpful: 0 },
+                    ],
+                  }
+                : c,
+            ),
+          }
+        }
+        return {
+          ...p,
+          comments: [
+            { id: `cm-new-${Date.now()}`, author, body, when: 'just now', helpful: 0 },
+            ...p.comments,
+          ],
+        }
+      }),
+    )
+  }
+
   /** All looks generated across the session, newest first. */
   const [recentLooks, setRecentLooks] = useState<GeneratedLook[]>([])
   /** Subset of recentLooks the user has hearted. */
@@ -108,7 +161,9 @@ export default function App() {
     setSavedLookIds(new Set())
     setReviews(REVIEWS_SEED)
     setHelpfulIds(new Set())
-    setOnboarded(false)
+    // Land on the auth choice screen — keep onboarding completed so the user
+    // doesn't have to walk through it again after a sign-out.
+    setAuthed(false)
   }
 
   if (!onboarded) {
@@ -116,6 +171,22 @@ export default function App() {
       <div className="relative h-full w-full flex items-center justify-center bg-canvas overflow-auto">
         <PhoneFrame>
           <OnboardingScreen onDone={() => setOnboarded(true)} />
+        </PhoneFrame>
+      </div>
+    )
+  }
+
+  if (!authed) {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center bg-canvas overflow-auto">
+        <PhoneFrame>
+          <AuthFlow
+            onAuthed={(p) => {
+              setProfile(p)
+              setCity(p.city)
+              setAuthed(true)
+            }}
+          />
         </PhoneFrame>
       </div>
     )
@@ -133,6 +204,8 @@ export default function App() {
             {showTopBar && (
               <TopBar
                 city={city}
+                name={profile.name}
+                avatar={profile.avatar}
                 onCityClick={() => go({ kind: 'city-picker' })}
                 onBellClick={() => go({ kind: 'notifications' })}
               />
@@ -149,6 +222,14 @@ export default function App() {
               )}
               {!inSubScreen && tab === 'explore' && (
                 <ExploreScreen city={city} mode={exploreMode} setMode={setExploreMode} go={go} />
+              )}
+              {!inSubScreen && tab === 'community' && (
+                <CommunityScreen
+                  posts={posts}
+                  helpfulIds={postHelpful}
+                  onToggleHelpful={togglePostHelpful}
+                  go={go}
+                />
               )}
               {!inSubScreen && tab === 'studio' && (
                 <StudioScreen saved={savedLooks} recent={recentLooks} go={go} />
@@ -299,7 +380,28 @@ export default function App() {
                 go={go}
               />
             )}
-            {current?.kind === 'edit-profile' && <EditProfileScreen onBack={back} />}
+            {current?.kind === 'edit-profile' && (
+              <EditProfileScreen
+                profile={profile}
+                onSave={(p) => { setProfile(p); setCity(p.city) }}
+                onBack={back}
+              />
+            )}
+            {current?.kind === 'account-settings' && (
+              <AccountSettingsScreen
+                profile={profile}
+                onSignOut={handleLogout}
+                onChange={(field) => go({ kind: 'account-change', field })}
+                onBack={back}
+              />
+            )}
+            {current?.kind === 'account-change' && (
+              <AccountChangeScreen
+                field={current.field}
+                profile={profile}
+                onBack={back}
+              />
+            )}
             {current?.kind === 'language' && <LanguageScreen onBack={back} />}
             {current?.kind === 'appearance' && <AppearanceScreen onBack={back} />}
             {current?.kind === 'notifications' && <NotificationsScreen onBack={back} go={go} />}
@@ -308,6 +410,44 @@ export default function App() {
             {current?.kind === 'help' && <HelpScreen onBack={back} />}
             {current?.kind === 'terms' && <TermsScreen onBack={back} />}
             {current?.kind === 'saved' && <SavedScreen favorites={favorites} onBack={back} go={go} />}
+            {current?.kind === 'community-post' && (
+              <PostDetailScreen
+                postId={current.postId}
+                posts={posts}
+                helpfulIds={postHelpful}
+                onToggleHelpful={togglePostHelpful}
+                onAddComment={addComment}
+                onBack={back}
+                go={go}
+              />
+            )}
+            {current?.kind === 'community-compose' && (
+              <ComposePostScreen
+                initialProviderId={current.providerId}
+                initialTopic={current.topic}
+                onBack={back}
+                onSubmit={addPost}
+              />
+            )}
+            {current?.kind === 'community-search' && (
+              <CommunitySearchScreen
+                posts={posts}
+                helpfulIds={postHelpful}
+                onToggleHelpful={togglePostHelpful}
+                onBack={back}
+                go={go}
+              />
+            )}
+
+            {showShell && tab === 'community' && (
+              <button
+                onClick={() => go({ kind: 'community-compose' })}
+                aria-label="New post"
+                className="absolute bottom-[104px] right-5 z-[35] h-12 w-12 grid place-items-center rounded-full bg-ink text-canvas shadow-[0_2px_6px_-1px_rgba(0,0,0,0.18),0_12px_32px_-8px_rgba(0,0,0,0.28)] active:scale-95 transition"
+              >
+                <SquarePen size={16} strokeWidth={2} />
+              </button>
+            )}
 
             {showShell && <BottomNav active={tab} onChange={goTab} />}
           </div>

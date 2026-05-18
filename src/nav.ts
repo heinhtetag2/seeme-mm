@@ -1,11 +1,15 @@
 import type { CategoryId, PaymentMethod } from './data'
 import type { LookKind } from './studio'
+import type { TopicId } from './community'
 
-export type Tab = 'home' | 'explore' | 'studio' | 'bookings' | 'me'
+export type Tab = 'home' | 'explore' | 'community' | 'studio' | 'bookings' | 'me'
 
 export type View =
   | { kind: 'category'; categoryId: CategoryId }
   | { kind: 'provider'; providerId: string }
+  | { kind: 'community-post'; postId: string }
+  | { kind: 'community-compose'; providerId?: string; topic?: TopicId }
+  | { kind: 'community-search' }
   | { kind: 'staff'; staffId: string }
   | { kind: 'write-review'; providerId: string; bookingId?: string; staffId?: string }
   | { kind: 'book'; providerId: string; serviceId?: string; staffId?: string; lookId?: string; rescheduleOf?: string; initialDate?: string; initialTime?: string; initialParty?: number; initialPayment?: PaymentMethod; initialNote?: string }
@@ -13,6 +17,8 @@ export type View =
   | { kind: 'book-success'; bookingId: string }
   | { kind: 'booking-detail'; bookingId: string }
   | { kind: 'edit-profile' }
+  | { kind: 'account-settings' }
+  | { kind: 'account-change'; field: 'email' | 'phone' | 'password' }
   | { kind: 'city-picker' }
   | { kind: 'search' }
   | { kind: 'language' }

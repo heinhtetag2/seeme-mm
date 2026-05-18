@@ -6,7 +6,7 @@ import { useT } from '../i18n'
 
 type CityRow = { id: string; name: string; region: string; popular?: boolean }
 
-/** Hand-curated list of cities Bookly currently serves. */
+/** Hand-curated list of cities Seeme currently serves. */
 const CITIES: CityRow[] = [
   { id: 'yangon',      name: 'Yangon',      region: 'Yangon Region',         popular: true },
   { id: 'mandalay',    name: 'Mandalay',    region: 'Mandalay Region',       popular: true },
@@ -73,7 +73,7 @@ export function CityPickerScreen({
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search a city or region…"
+            placeholder={t('cityPicker.search')}
             className="flex-1 bg-transparent border-none outline-none text-[13.5px] placeholder:text-ink-muted"
           />
           {q && (

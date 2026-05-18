@@ -1,5 +1,5 @@
 import {
-  ChevronRight, Bell, Languages, Sun, HelpCircle, FileText, Info, LogOut, Pencil,
+  ChevronRight, Bell, Languages, Sun, HelpCircle, FileText, Info, LogOut, Pencil, UserCog,
   type LucideIcon,
 } from 'lucide-react'
 import { me } from '../data'
@@ -42,6 +42,7 @@ export function MeScreen({ go, setTab, savedCount, bookingsCount, onLogout }: {
       </div>
 
       <Section title={t('me.section.preferences')}>
+        <Row Icon={UserCog} label="Account" onClick={() => go({ kind: 'account-settings' })} />
         <Row Icon={Bell} label={t('me.notifications')} onClick={() => go({ kind: 'notif-prefs' })} />
         <Row Icon={Languages} label={t('me.language')} onClick={() => go({ kind: 'language' })} />
         <Row Icon={Sun} label={t('me.appearance')} onClick={() => go({ kind: 'appearance' })} />

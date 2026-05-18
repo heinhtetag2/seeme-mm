@@ -7,7 +7,8 @@ import { PROVIDER_BY_ID, staffByProvider, STAFF_BY_ID, type Review } from '../da
 import { useToast } from '../components/Toast'
 import { useT } from '../i18n'
 
-const LABELS = ['Tap to rate', 'Poor', 'Fair', 'Good', 'Great', 'Exceptional']
+// Resolved via t() inside the component so it switches with language.
+const RATING_KEYS = ['review.rate.0', 'review.rate.1', 'review.rate.2', 'review.rate.3', 'review.rate.4', 'review.rate.5'] as const
 
 const PROMPTS = [
   'On time?',
@@ -101,14 +102,14 @@ export function WriteReviewScreen({
             <StarRating value={rating} onChange={setRating} size={36} />
           </div>
           <div className="mt-2 text-[13px] font-semibold text-ink-muted">
-            {LABELS[rating]}
+            {t(RATING_KEYS[rating])}
           </div>
         </section>
 
         {/* Quick tags */}
         <section className="px-5 pt-7">
           <div className="kicker mb-1.5">{t('review.kicker.highlights')}</div>
-          <p className="text-[12px] text-ink-muted mb-3">Tap any that apply.</p>
+          <p className="text-[12px] text-ink-muted mb-3">{t('review.tagsHint')}</p>
           <div className="flex flex-wrap gap-1.5">
             {PROMPTS.map((p) => {
               const active = tags.has(p)
@@ -135,7 +136,7 @@ export function WriteReviewScreen({
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="Tell others what stood out — punctuality, results, atmosphere…"
+            placeholder={t('review.body.placeholder')}
             rows={5}
             className="w-full p-3.5 rounded-2xl border border-line/70 bg-surface-elevated text-[13px] outline-none placeholder:text-ink-muted resize-none focus:border-line-strong"
           />

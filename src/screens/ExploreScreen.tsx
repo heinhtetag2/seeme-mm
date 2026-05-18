@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Search, X, Star, List as ListIcon, Map as MapIcon, SlidersHorizontal, ChevronDown, Navigation, RefreshCw } from 'lucide-react'
+import { Search, X, Star, List as ListIcon, Map as MapIcon, SlidersHorizontal, ChevronDown, Navigation, RefreshCw, Home as HomeIcon, Briefcase, MapPin, Plus } from 'lucide-react'
 import { ProviderRow } from '../components/ProviderCard'
 import { ProviderCover } from '../components/Cover'
-import { CATEGORIES, PROVIDERS, CATEGORY_BY_ID, formatMMK, searchProviders, type CategoryId, type Provider, type LatLng } from '../data'
+import { CATEGORIES, PROVIDERS, CATEGORY_BY_ID, formatMMK, searchProviders, kmBetween, LANDMARKS, searchLandmarks, type CategoryId, type Provider, type LatLng, type Landmark } from '../data'
 import { useT } from '../i18n'
 import type { View } from '../nav'
 
@@ -23,6 +23,11 @@ export function ExploreScreen({
   const t = useT()
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<'all' | CategoryId>('all')
+  // Search scope — answers "where am I looking?" Tapping the search-pill
+  // subtitle opens a location picker. Scopes with `coords` filter providers by
+  // haversine distance; coordless scopes are pass-through.
+  const [scope, setScope] = useState<Scope>({ kind: 'mapArea', label: 'Map area' })
+  const [savedPlaces, setSavedPlaces] = useState<SavedPlaces>(() => loadSavedPlaces())
 
   // Inline filter state
   const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'price'>('distance')
@@ -36,10 +41,8 @@ export function ExploreScreen({
   const [freeCancelOnly, setFreeCancelOnly] = useState(false)
   const [duration, setDuration] = useState<'any' | 'short' | 'mid' | 'long' | 'xlong'>('any')
   const [language, setLanguage] = useState<'any' | 'en' | 'mm'>('any')
-  const [walkInOnly, setWalkInOnly] = useState(false)
-  const [parkingOnly, setParkingOnly] = useState(false)
   // Which picker / modal is open
-  const [pickerOpen, setPickerOpen] = useState<null | 'sort' | 'distance' | 'availability' | 'price' | 'category' | 'all'>(null)
+  const [pickerOpen, setPickerOpen] = useState<null | 'sort' | 'distance' | 'availability' | 'price' | 'category' | 'all' | 'scope'>(null)
 
   const activeFilterCount =
     (minRating != null ? 1 : 0) +
@@ -47,9 +50,7 @@ export function ExploreScreen({
     (instantOnly ? 1 : 0) +
     (freeCancelOnly ? 1 : 0) +
     (duration !== 'any' ? 1 : 0) +
-    (language !== 'any' ? 1 : 0) +
-    (walkInOnly ? 1 : 0) +
-    (parkingOnly ? 1 : 0)
+    (language !== 'any' ? 1 : 0)
 
   const anyChipActive =
     sortBy !== 'distance' ||
@@ -71,8 +72,6 @@ export function ExploreScreen({
     setFreeCancelOnly(false)
     setDuration('any')
     setLanguage('any')
-    setWalkInOnly(false)
-    setParkingOnly(false)
   }
 
   /** City + search + category + chip filters, then sorted by chosen order. */
@@ -84,8 +83,17 @@ export function ExploreScreen({
     if (q.trim()) {
       const searched = new Set(searchProviders(q).map((p) => p.id))
       base = base.filter((p) => searched.has(p.id))
-    } else if (filter !== 'all') {
+    }
+    if (filter !== 'all') {
       base = base.filter((p) => p.category === filter)
+    }
+    if (scope.kind === 'nearMe') {
+      base = base.filter((p) => p.distanceKm <= 2)
+    } else if (scope.kind === 'currentLocation') {
+      base = base.filter((p) => p.distanceKm <= 1)
+    } else if (scope.coords) {
+      const origin = scope.coords
+      base = base.filter((p) => p.coords && kmBetween(p.coords, origin) <= 3)
     }
     if (distanceMax != null) {
       base = base.filter((p) => p.distanceKm <= distanceMax)
@@ -108,7 +116,7 @@ export function ExploreScreen({
       }
       base = base.filter((p) => p.services.some((s) => fits(s.duration)))
     }
-    // openNow / freeCancel / availability / language / walkIn / parking
+    // openNow / freeCancel / availability / language
     // — mock pass-through (no rich data), kept as toggles for the design.
 
     return [...base].sort((a, b) => {
@@ -120,7 +128,7 @@ export function ExploreScreen({
       }
       return a.distanceKm - b.distanceKm
     })
-  }, [q, filter, city, distanceMax, priceMax, minRating, instantOnly, duration, sortBy])
+  }, [q, filter, city, scope, distanceMax, priceMax, minRating, instantOnly, duration, sortBy])
 
   /* ───── Sheet drag state ───── */
 
@@ -236,9 +244,13 @@ export function ExploreScreen({
         </button>
       )}
 
-      {/* No-results floating pill over the map */}
+      {/* No-results floating pill — sits just above the bottom sheet so it
+          stays out of the search/category area and tracks the sheet height. */}
       {q && list.length === 0 && sheet !== 'full' && (
-        <div className="absolute inset-x-0 top-[140px] z-30 flex justify-center pointer-events-none">
+        <div
+          className="absolute inset-x-0 z-30 flex justify-center pointer-events-none transition-[bottom]"
+          style={{ bottom: liveH + 16, transition: sheetTransition.replace('height', 'bottom') }}
+        >
           <button
             onClick={() => setQ('')}
             className="pointer-events-auto inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-canvas/95 backdrop-blur border border-line/70 shadow-soft text-[12px]"
@@ -279,7 +291,12 @@ export function ExploreScreen({
                     className="absolute inset-0 w-full bg-transparent border-none outline-none p-0 text-[13.5px] font-semibold text-ink placeholder:text-ink placeholder:font-semibold"
                   />
                 </label>
-                <span className="text-[13.5px] text-ink-muted leading-tight truncate">· Current location</span>
+                <button
+                  onClick={() => setPickerOpen('scope')}
+                  className="text-[13.5px] text-ink-muted leading-tight truncate underline-offset-2 decoration-line-strong hover:decoration-ink"
+                >
+                  · {scope.label}
+                </button>
               </div>
             ) : (
               <>
@@ -289,25 +306,29 @@ export function ExploreScreen({
                   placeholder={t('explore.search.placeholder')}
                   className="w-full bg-transparent border-none outline-none text-[13.5px] font-semibold text-ink leading-tight placeholder:text-ink placeholder:font-semibold"
                 />
-                <div className="text-[11.5px] text-ink-muted leading-tight mt-0.5 truncate">{t('explore.mapArea')}</div>
+                <button
+                  onClick={() => setPickerOpen('scope')}
+                  className="block text-[11.5px] text-ink-muted leading-tight mt-0.5 truncate underline-offset-2 decoration-line-strong hover:decoration-ink"
+                >
+                  {scope.label}
+                </button>
               </>
             )}
           </div>
 
-          {q ? (
-            <button
-              onClick={() => setQ('')}
-              className={`grid place-items-center rounded-full border border-line/70 shrink-0 transition-[height,width] duration-300 ease-out ${
-                sheet === 'full' ? 'h-8 w-8' : 'h-9 w-9'
-              }`}
-              aria-label="Clear search"
-            >
-              <X size={13} className="text-ink-muted" strokeWidth={2.2} />
-            </button>
-          ) : (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {q && (
+              <button
+                onClick={() => setQ('')}
+                aria-label="Clear search"
+                className="grid place-items-center rounded-full bg-surface-higher h-5 w-5 shrink-0"
+              >
+                <X size={10} className="text-ink-muted" strokeWidth={2.6} />
+              </button>
+            )}
             <button
               onClick={() => setSheet(sheet === 'full' ? 'hidden' : 'full')}
-              className={`grid place-items-center rounded-full border border-line/70 shrink-0 transition-[height,width] duration-300 ease-out ${
+              className={`grid place-items-center rounded-full border border-line/70 transition-[height,width] duration-300 ease-out ${
                 sheet === 'full' ? 'h-8 w-8' : 'h-9 w-9'
               }`}
               aria-label={sheet === 'full' ? 'Show map' : 'Show list'}
@@ -318,7 +339,7 @@ export function ExploreScreen({
                 <ListIcon size={14} className="text-ink" strokeWidth={1.9} />
               )}
             </button>
-          )}
+          </div>
         </div>
 
         {/* Category filter row — hidden in list view to avoid stacking with
@@ -399,28 +420,32 @@ export function ExploreScreen({
             </button>
           )}
           <FilterChip
-            label={sortBy === 'distance' ? 'Nearest' : sortBy === 'rating' ? 'Top rated' : 'Lowest price'}
+            label={sortBy === 'distance' ? t('sort.nearest') : sortBy === 'rating' ? t('sort.topRated') : t('sort.lowestPrice')}
             active={sortBy !== 'distance'}
             onClick={() => setPickerOpen('sort')}
           />
+          {/* Category lives in the top tabs while the map is visible; it only
+              appears here in list view, where the top tabs are hidden. */}
+          {sheet === 'full' && (
+            <FilterChip
+              label={filter === 'all' ? t('chip.category') : (CATEGORIES.find((c) => c.id === filter)?.name ?? t('chip.category'))}
+              active={filter !== 'all'}
+              Icon={filter === 'all' ? undefined : CATEGORIES.find((c) => c.id === filter)?.Icon}
+              onClick={() => setPickerOpen('category')}
+            />
+          )}
           <FilterChip
-            label={filter === 'all' ? 'Category' : (CATEGORIES.find((c) => c.id === filter)?.name ?? 'Category')}
-            active={filter !== 'all'}
-            Icon={filter === 'all' ? undefined : CATEGORIES.find((c) => c.id === filter)?.Icon}
-            onClick={() => setPickerOpen('category')}
-          />
-          <FilterChip
-            label={distanceMax == null ? 'Distance' : `≤ ${distanceMax} km`}
+            label={distanceMax == null ? t('chip.distance') : `≤ ${distanceMax} km`}
             active={distanceMax != null}
             onClick={() => setPickerOpen('distance')}
           />
           <FilterChip
-            label={availability === 'any' ? 'Availability' : availability === 'today' ? 'Today' : 'This week'}
+            label={availability === 'any' ? t('chip.availability') : availability === 'today' ? t('avail.today') : t('avail.week')}
             active={availability !== 'any'}
             onClick={() => setPickerOpen('availability')}
           />
           <FilterChip
-            label={priceMax == null ? 'Price' : `≤ ${formatMMK(priceMax)}`}
+            label={priceMax == null ? t('chip.price') : `≤ ${formatMMK(priceMax)}`}
             active={priceMax != null}
             onClick={() => setPickerOpen('price')}
           />
@@ -443,30 +468,48 @@ export function ExploreScreen({
 
       {/* Filter picker sheets */}
       {pickerOpen === 'sort' && (
-        <PickerSheet title="Sort by" onClose={() => setPickerOpen(null)}>
-          <PickerOption label="Nearest" selected={sortBy === 'distance'} onClick={() => { setSortBy('distance'); setPickerOpen(null) }} />
-          <PickerOption label="Top rated" selected={sortBy === 'rating'} onClick={() => { setSortBy('rating'); setPickerOpen(null) }} />
-          <PickerOption label="Lowest price" selected={sortBy === 'price'} onClick={() => { setSortBy('price'); setPickerOpen(null) }} />
+        <PickerSheet title={t('sheet.sortBy')} onClose={() => setPickerOpen(null)}>
+          <PickerOption label={t('sort.nearest')} selected={sortBy === 'distance'} onClick={() => { setSortBy('distance'); setPickerOpen(null) }} />
+          <PickerOption label={t('sort.topRated')} selected={sortBy === 'rating'} onClick={() => { setSortBy('rating'); setPickerOpen(null) }} />
+          <PickerOption label={t('sort.lowestPrice')} selected={sortBy === 'price'} onClick={() => { setSortBy('price'); setPickerOpen(null) }} />
         </PickerSheet>
       )}
+      {pickerOpen === 'scope' && (
+        <LocationPickerSheet
+          scope={scope}
+          savedPlaces={savedPlaces}
+          onPickScope={(s) => { setScope(s); setPickerOpen(null) }}
+          onSavePlace={(key, place) => {
+            const next = { ...savedPlaces, [key]: place }
+            setSavedPlaces(next)
+            persistSavedPlaces(next)
+          }}
+          onRemovePlace={(key) => {
+            const next = { ...savedPlaces, [key]: null }
+            setSavedPlaces(next)
+            persistSavedPlaces(next)
+          }}
+          onClose={() => setPickerOpen(null)}
+        />
+      )}
       {pickerOpen === 'distance' && (
-        <PickerSheet title="Distance" onClose={() => setPickerOpen(null)}>
-          <PickerOption label="Any distance" selected={distanceMax == null} onClick={() => { setDistanceMax(null); setPickerOpen(null) }} />
-          <PickerOption label="Within 1 km" selected={distanceMax === 1} onClick={() => { setDistanceMax(1); setPickerOpen(null) }} />
-          <PickerOption label="Within 2 km" selected={distanceMax === 2} onClick={() => { setDistanceMax(2); setPickerOpen(null) }} />
-          <PickerOption label="Within 5 km" selected={distanceMax === 5} onClick={() => { setDistanceMax(5); setPickerOpen(null) }} />
-          <PickerOption label="Within 10 km" selected={distanceMax === 10} onClick={() => { setDistanceMax(10); setPickerOpen(null) }} />
+        <PickerSheet title={t('chip.distance')} onClose={() => setPickerOpen(null)}>
+          <PickerOption label={t('distance.any')} selected={distanceMax == null} onClick={() => { setDistanceMax(null); setPickerOpen(null) }} />
+          <PickerOption label={t('distance.1')} selected={distanceMax === 1} onClick={() => { setDistanceMax(1); setPickerOpen(null) }} />
+          <PickerOption label={t('distance.2')} selected={distanceMax === 2} onClick={() => { setDistanceMax(2); setPickerOpen(null) }} />
+          <PickerOption label={t('distance.5')} selected={distanceMax === 5} onClick={() => { setDistanceMax(5); setPickerOpen(null) }} />
+          <PickerOption label={t('distance.10')} selected={distanceMax === 10} onClick={() => { setDistanceMax(10); setPickerOpen(null) }} />
         </PickerSheet>
       )}
       {pickerOpen === 'availability' && (
-        <PickerSheet title="Availability" onClose={() => setPickerOpen(null)}>
-          <PickerOption label="Anytime" selected={availability === 'any'} onClick={() => { setAvailability('any'); setPickerOpen(null) }} />
-          <PickerOption label="Today" selected={availability === 'today'} onClick={() => { setAvailability('today'); setPickerOpen(null) }} />
-          <PickerOption label="This week" selected={availability === 'week'} onClick={() => { setAvailability('week'); setPickerOpen(null) }} />
+        <PickerSheet title={t('chip.availability')} onClose={() => setPickerOpen(null)}>
+          <PickerOption label={t('avail.any')} selected={availability === 'any'} onClick={() => { setAvailability('any'); setPickerOpen(null) }} />
+          <PickerOption label={t('avail.today')} selected={availability === 'today'} onClick={() => { setAvailability('today'); setPickerOpen(null) }} />
+          <PickerOption label={t('avail.week')} selected={availability === 'week'} onClick={() => { setAvailability('week'); setPickerOpen(null) }} />
         </PickerSheet>
       )}
       {pickerOpen === 'category' && (
-        <PickerSheet title="Category" onClose={() => setPickerOpen(null)}>
+        <PickerSheet title={t('sheet.category')} onClose={() => setPickerOpen(null)}>
           <PickerOption label={t('explore.filter.all')} selected={filter === 'all'} onClick={() => { setFilter('all'); setPickerOpen(null) }} />
           {CATEGORIES.map((c) => (
             <PickerOption
@@ -479,12 +522,12 @@ export function ExploreScreen({
         </PickerSheet>
       )}
       {pickerOpen === 'price' && (
-        <PickerSheet title="Price" onClose={() => setPickerOpen(null)}>
-          <PickerOption label="Any price" selected={priceMax == null} onClick={() => { setPriceMax(null); setPickerOpen(null) }} />
-          <PickerOption label="Under 20,000 MMK" selected={priceMax === 20000} onClick={() => { setPriceMax(20000); setPickerOpen(null) }} />
-          <PickerOption label="Under 50,000 MMK" selected={priceMax === 50000} onClick={() => { setPriceMax(50000); setPickerOpen(null) }} />
-          <PickerOption label="Under 100,000 MMK" selected={priceMax === 100000} onClick={() => { setPriceMax(100000); setPickerOpen(null) }} />
-          <PickerOption label="Under 200,000 MMK" selected={priceMax === 200000} onClick={() => { setPriceMax(200000); setPickerOpen(null) }} />
+        <PickerSheet title={t('chip.price')} onClose={() => setPickerOpen(null)}>
+          <PickerOption label={t('price.any')} selected={priceMax == null} onClick={() => { setPriceMax(null); setPickerOpen(null) }} />
+          <PickerOption label={t('price.20')} selected={priceMax === 20000} onClick={() => { setPriceMax(20000); setPickerOpen(null) }} />
+          <PickerOption label={t('price.50')} selected={priceMax === 50000} onClick={() => { setPriceMax(50000); setPickerOpen(null) }} />
+          <PickerOption label={t('price.100')} selected={priceMax === 100000} onClick={() => { setPriceMax(100000); setPickerOpen(null) }} />
+          <PickerOption label={t('price.200')} selected={priceMax === 200000} onClick={() => { setPriceMax(200000); setPickerOpen(null) }} />
         </PickerSheet>
       )}
       {pickerOpen === 'all' && (
@@ -502,18 +545,330 @@ export function ExploreScreen({
           setDuration={setDuration}
           language={language}
           setLanguage={setLanguage}
-          walkInOnly={walkInOnly}
-          setWalkInOnly={setWalkInOnly}
-          parkingOnly={parkingOnly}
-          setParkingOnly={setParkingOnly}
           onClear={() => {
             setMinRating(null); setOpenNowOnly(false); setInstantOnly(false); setFreeCancelOnly(false)
-            setDuration('any'); setLanguage('any'); setWalkInOnly(false); setParkingOnly(false)
+            setDuration('any'); setLanguage('any')
           }}
         />
       )}
     </div>
   )
+}
+
+/* ─────────── Location scope ─────────── */
+
+type Scope = {
+  kind: 'mapArea' | 'nearMe' | 'currentLocation' | 'place'
+  label: string
+  /** Used by 'place' (saved address or landmark) to filter providers by distance. */
+  coords?: LatLng
+  placeId?: string
+}
+
+type SavedPlaceKey = 'home' | 'work'
+type SavedPlace = { id: string; name: string; subtitle: string; coords: LatLng }
+type SavedPlaces = Record<SavedPlaceKey, SavedPlace | null>
+
+const SAVED_PLACES_KEY = 'seeme.savedPlaces.v1'
+
+function loadSavedPlaces(): SavedPlaces {
+  try {
+    const raw = localStorage.getItem(SAVED_PLACES_KEY)
+    if (!raw) return { home: null, work: null }
+    const parsed = JSON.parse(raw)
+    return { home: parsed.home ?? null, work: parsed.work ?? null }
+  } catch {
+    return { home: null, work: null }
+  }
+}
+
+function persistSavedPlaces(p: SavedPlaces) {
+  try { localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(p)) } catch { /* ignore */ }
+}
+
+/**
+ * Richer scope sheet modeled on the Grab/Foodpanda "Location" picker:
+ *   - search input that filters Myanmar landmarks live
+ *   - Use current location
+ *   - Map area / Near me · 2 km
+ *   - My places: Add home / Add work, with quick assign from any picked landmark
+ * Tapping a landmark commits a `place` scope (haversine filter ≤ 3 km).
+ */
+function LocationPickerSheet({
+  scope, savedPlaces, onPickScope, onSavePlace, onRemovePlace, onClose,
+}: {
+  scope: Scope
+  savedPlaces: SavedPlaces
+  onPickScope: (s: Scope) => void
+  onSavePlace: (key: SavedPlaceKey, place: SavedPlace) => void
+  onRemovePlace: (key: SavedPlaceKey) => void
+  onClose: () => void
+}) {
+  const [query, setQuery] = useState('')
+  // When set, the next landmark tap saves to this key instead of switching scope.
+  const [saveTarget, setSaveTarget] = useState<SavedPlaceKey | null>(null)
+
+  const results = useMemo(() => searchLandmarks(query), [query])
+  const trimmed = query.trim()
+
+  const pickLandmark = (l: Landmark) => {
+    if (saveTarget) {
+      onSavePlace(saveTarget, { id: l.id, name: l.name, subtitle: l.subtitle, coords: l.coords })
+      setSaveTarget(null)
+      setQuery('')
+    } else {
+      onPickScope({ kind: 'place', label: `Near ${l.name}`, coords: l.coords, placeId: l.id })
+    }
+  }
+
+  return (
+    <div className="absolute inset-0 z-50 bg-black/30 flex items-end animate-fade-in">
+      <button onClick={onClose} className="absolute inset-0" aria-hidden />
+      <div className="relative w-full bg-surface-elevated border-t border-line/70 rounded-t-3xl pt-2 pb-6 animate-slide-up max-h-[85%] overflow-y-auto scrollbar-hide">
+        <div className="mx-auto h-1 w-10 rounded-full bg-line-strong mb-3" />
+
+        <div className="px-5 pb-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="kicker">Location</div>
+            <h2 className="font-serif text-[20px] leading-[1.1] tracking-tight font-semibold">
+              {saveTarget ? `Set your ${saveTarget}` : 'Where to look'}
+            </h2>
+          </div>
+          {saveTarget && (
+            <button
+              onClick={() => { setSaveTarget(null); setQuery('') }}
+              className="text-[12px] font-semibold text-ink-muted"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+
+        {/* Search input */}
+        <div className="px-5">
+          <div className="flex items-center gap-2 h-11 px-4 rounded-2xl bg-canvas border border-line/70 focus-within:border-ink transition">
+            <Search size={15} className="text-ink-muted shrink-0" strokeWidth={2.1} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search neighborhoods or landmarks"
+              autoFocus
+              className="flex-1 bg-transparent border-none outline-none text-[13px] text-ink placeholder:text-ink-muted"
+            />
+            {query && (
+              <button onClick={() => setQuery('')} className="shrink-0 h-6 w-6 grid place-items-center rounded-full bg-surface-higher" aria-label="Clear">
+                <X size={11} strokeWidth={2.4} className="text-ink-muted" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Search results (when typing) */}
+        {trimmed && (
+          <div className="px-5 mt-4">
+            {results.length === 0 ? (
+              <div className="py-8 text-center text-[12.5px] text-ink-muted">
+                No places match "{trimmed}"
+              </div>
+            ) : (
+              <div className="divide-y divide-line/50">
+                {results.map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => pickLandmark(l)}
+                    className="w-full flex items-center gap-3 py-3 text-left"
+                  >
+                    <div className="shrink-0 h-9 w-9 rounded-full bg-surface-higher grid place-items-center">
+                      <MapPin size={15} strokeWidth={2} className="text-ink-muted" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[14px] font-semibold tracking-tight text-ink">
+                        <Highlight text={l.name} q={trimmed} />
+                      </div>
+                      <div className="text-[11.5px] text-ink-muted truncate mt-0.5">
+                        <Highlight text={l.subtitle} q={trimmed} />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Default state — current location, scope rows, my places */}
+        {!trimmed && !saveTarget && (
+          <>
+            <div className="px-5 mt-3">
+              <ScopeRow
+                Icon={Navigation}
+                label="Use current location"
+                sub="Within 1 km"
+                selected={scope.kind === 'currentLocation'}
+                onClick={() => onPickScope({ kind: 'currentLocation', label: 'Current location' })}
+                tone="brand"
+              />
+              <ScopeRow
+                Icon={MapIcon}
+                label="Map area"
+                sub="Whatever's on screen"
+                selected={scope.kind === 'mapArea'}
+                onClick={() => onPickScope({ kind: 'mapArea', label: 'Map area' })}
+              />
+              <ScopeRow
+                Icon={MapPin}
+                label="Near me · 2 km"
+                sub="Wider walking radius"
+                selected={scope.kind === 'nearMe'}
+                onClick={() => onPickScope({ kind: 'nearMe', label: 'Near me · 2 km' })}
+              />
+            </div>
+
+            <div className="px-5 mt-5 pb-1 flex items-center justify-between">
+              <div className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted">My places</div>
+            </div>
+            <div className="px-5">
+              <SavedPlaceRow
+                Icon={HomeIcon}
+                key_="home"
+                place={savedPlaces.home}
+                selected={scope.kind === 'place' && scope.placeId === savedPlaces.home?.id}
+                onPick={(p) => onPickScope({ kind: 'place', label: `Home · ${p.name}`, coords: p.coords, placeId: p.id })}
+                onAdd={() => setSaveTarget('home')}
+                onRemove={() => onRemovePlace('home')}
+              />
+              <SavedPlaceRow
+                Icon={Briefcase}
+                key_="work"
+                place={savedPlaces.work}
+                selected={scope.kind === 'place' && scope.placeId === savedPlaces.work?.id}
+                onPick={(p) => onPickScope({ kind: 'place', label: `Work · ${p.name}`, coords: p.coords, placeId: p.id })}
+                onAdd={() => setSaveTarget('work')}
+                onRemove={() => onRemovePlace('work')}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Save mode — prompt to pick a landmark to assign */}
+        {!trimmed && saveTarget && (
+          <div className="px-5 mt-3 text-[12.5px] text-ink-muted">
+            Search for a neighborhood or landmark above, then tap it to save as your <span className="font-semibold text-ink">{saveTarget}</span>.
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ScopeRow({
+  Icon, label, sub, selected, onClick, tone,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Icon: any
+  label: string
+  sub?: string
+  selected: boolean
+  onClick: () => void
+  tone?: 'brand'
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 py-3 text-left border-b border-line/50 last:border-b-0`}
+    >
+      <div className={`shrink-0 h-9 w-9 rounded-full grid place-items-center ${
+        tone === 'brand' ? 'bg-rust-50/10 text-rust-50' : 'bg-surface-higher text-ink-muted'
+      }`}>
+        <Icon size={15} strokeWidth={2} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className={`text-[13.5px] font-semibold tracking-tight ${selected ? 'text-ink' : 'text-ink'}`}>{label}</div>
+        {sub && <div className="text-[11px] text-ink-muted truncate mt-0.5">{sub}</div>}
+      </div>
+      {selected && (
+        <span className="shrink-0 h-5 w-5 rounded-full bg-ink grid place-items-center">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+            <path d="M2 5.5L4.5 8L9 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-canvas" />
+          </svg>
+        </span>
+      )}
+    </button>
+  )
+}
+
+function SavedPlaceRow({
+  Icon, key_, place, selected, onPick, onAdd, onRemove,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Icon: any
+  key_: SavedPlaceKey
+  place: SavedPlace | null
+  selected: boolean
+  onPick: (p: SavedPlace) => void
+  onAdd: () => void
+  onRemove: () => void
+}) {
+  const labelCap = key_.charAt(0).toUpperCase() + key_.slice(1)
+  if (!place) {
+    return (
+      <button
+        onClick={onAdd}
+        className="w-full flex items-center gap-3 py-3 text-left border-b border-line/50 last:border-b-0"
+      >
+        <div className="shrink-0 h-9 w-9 rounded-full bg-surface-higher grid place-items-center">
+          <Icon size={15} strokeWidth={2} className="text-ink-muted" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[13.5px] font-semibold tracking-tight text-ink">Add {key_}</div>
+          <div className="text-[11px] text-ink-muted">Save a place you visit often</div>
+        </div>
+        <span className="shrink-0 h-6 w-6 rounded-full border border-line-strong grid place-items-center">
+          <Plus size={11} strokeWidth={2.4} className="text-ink-muted" />
+        </span>
+      </button>
+    )
+  }
+  return (
+    <div className="flex items-center gap-3 py-3 border-b border-line/50 last:border-b-0">
+      <button onClick={() => onPick(place)} className="flex-1 flex items-center gap-3 text-left min-w-0">
+        <div className={`shrink-0 h-9 w-9 rounded-full grid place-items-center ${selected ? 'bg-ink text-canvas' : 'bg-surface-higher text-ink-muted'}`}>
+          <Icon size={15} strokeWidth={2} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[13.5px] font-semibold tracking-tight text-ink">{labelCap} · {place.name}</div>
+          <div className="text-[11px] text-ink-muted truncate mt-0.5">{place.subtitle}</div>
+        </div>
+      </button>
+      <button
+        onClick={onRemove}
+        aria-label={`Remove ${key_}`}
+        className="shrink-0 h-7 w-7 grid place-items-center rounded-full border border-line/70"
+      >
+        <X size={11} strokeWidth={2.4} className="text-ink-muted" />
+      </button>
+    </div>
+  )
+}
+
+/** Wraps `q` matches in a subtle highlight without touching the rest of the text. */
+function Highlight({ text, q }: { text: string; q: string }) {
+  const needle = q.trim()
+  if (!needle) return <>{text}</>
+  const parts: React.ReactNode[] = []
+  const lc = text.toLowerCase()
+  const lcN = needle.toLowerCase()
+  let i = 0
+  while (i < text.length) {
+    const at = lc.indexOf(lcN, i)
+    if (at === -1) { parts.push(text.slice(i)); break }
+    if (at > i) parts.push(text.slice(i, at))
+    parts.push(
+      <span key={at} className="bg-rust-50/20 rounded px-0.5">{text.slice(at, at + needle.length)}</span>,
+    )
+    i = at + needle.length
+  }
+  return <>{parts}</>
 }
 
 /* ─────────── Filter picker sheets ─────────── */
@@ -527,6 +882,7 @@ function PickerSheet({
   onClose: () => void
   children: React.ReactNode
 }) {
+  const t = useT()
   return (
     <div className="absolute inset-0 z-50 bg-black/30 flex items-end animate-fade-in">
       <button onClick={onClose} className="absolute inset-0" aria-hidden />
@@ -539,7 +895,7 @@ function PickerSheet({
           <X size={15} strokeWidth={2.2} />
         </button>
         <div className="mx-auto h-1 w-10 rounded-full bg-line-strong mb-5" />
-        <div className="kicker mb-1">Filter</div>
+        <div className="kicker mb-1">{t('pickerLabel.filter')}</div>
         <h2 className="font-serif text-[22px] leading-[1.1] tracking-tight font-semibold mb-4">{title}</h2>
         <div className="divide-y divide-line/60 border-y border-line/60">
           {children}
@@ -588,8 +944,6 @@ function AllFiltersSheet({
   freeCancelOnly, setFreeCancelOnly,
   duration, setDuration,
   language, setLanguage,
-  walkInOnly, setWalkInOnly,
-  parkingOnly, setParkingOnly,
   onClear,
 }: {
   onClose: () => void
@@ -605,12 +959,9 @@ function AllFiltersSheet({
   setDuration: (v: Duration) => void
   language: Lang
   setLanguage: (v: Lang) => void
-  walkInOnly: boolean
-  setWalkInOnly: (v: boolean) => void
-  parkingOnly: boolean
-  setParkingOnly: (v: boolean) => void
   onClear: () => void
 }) {
+  const t = useT()
   return (
     <div className="absolute inset-0 z-50 bg-black/30 flex items-end animate-fade-in">
       <button onClick={onClose} className="absolute inset-0" aria-hidden />
@@ -623,12 +974,12 @@ function AllFiltersSheet({
           <X size={15} strokeWidth={2.2} />
         </button>
         <div className="mx-auto h-1 w-10 rounded-full bg-line-strong mb-5" />
-        <div className="kicker mb-1">Filters</div>
-        <h2 className="font-serif text-[24px] leading-[1.05] tracking-tight font-semibold mb-5">All filters</h2>
+        <div className="kicker mb-1">{t('filters.kicker')}</div>
+        <h2 className="font-serif text-[24px] leading-[1.05] tracking-tight font-semibold mb-5">{t('filters.title')}</h2>
 
         {/* Minimum rating */}
         <section className="mb-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">Minimum rating</div>
+          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">{t('filters.minRating')}</div>
           <div className="flex gap-2 flex-wrap">
             {[null, 3, 4, 4.5].map((r) => (
               <button
@@ -639,7 +990,7 @@ function AllFiltersSheet({
                     ? 'bg-ink text-canvas'
                     : 'bg-canvas border border-line/70 text-ink'}`}
               >
-                {r == null ? 'Any' : (
+                {r == null ? t('filters.any') : (
                   <>
                     <Star size={11} strokeWidth={0} fill="currentColor" className={minRating === r ? 'text-canvas' : 'text-rust-50'} />
                     {r}+
@@ -652,14 +1003,14 @@ function AllFiltersSheet({
 
         {/* Service duration */}
         <section className="mb-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">Service duration</div>
+          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">{t('filters.serviceDuration')}</div>
           <div className="flex gap-2 flex-wrap">
             {([
-              ['any', 'Any'],
-              ['short', 'Under 30 min'],
-              ['mid', '30–60 min'],
-              ['long', '1–2 hr'],
-              ['xlong', 'Over 2 hr'],
+              ['any', t('filters.any')],
+              ['short', t('filters.dur.short')],
+              ['mid', t('filters.dur.mid')],
+              ['long', t('filters.dur.long')],
+              ['xlong', t('filters.dur.xlong')],
             ] as [Duration, string][]).map(([v, lbl]) => (
               <button
                 key={v}
@@ -675,12 +1026,12 @@ function AllFiltersSheet({
 
         {/* Languages */}
         <section className="mb-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">Languages spoken</div>
+          <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted mb-2.5">{t('filters.languages')}</div>
           <div className="flex gap-2">
             {([
-              ['any', 'Any'],
-              ['en', 'English'],
-              ['mm', 'Burmese'],
+              ['any', t('filters.any')],
+              ['en', t('filters.lang.en')],
+              ['mm', t('filters.lang.mm')],
             ] as [Lang, string][]).map(([v, lbl]) => (
               <button
                 key={v}
@@ -696,11 +1047,9 @@ function AllFiltersSheet({
 
         {/* Toggle filters */}
         <section className="mb-6 divide-y divide-line/60 border-y border-line/60">
-          <ToggleRow label="Open now" sub="Only places open right now" value={openNowOnly} onChange={setOpenNowOnly} />
-          <ToggleRow label="Instant booking" sub="Confirms immediately" value={instantOnly} onChange={setInstantOnly} />
-          <ToggleRow label="Free cancellation" sub="Cancel up to 2h before with no fee" value={freeCancelOnly} onChange={setFreeCancelOnly} />
-          <ToggleRow label="Walk-in welcome" sub="No appointment needed" value={walkInOnly} onChange={setWalkInOnly} />
-          <ToggleRow label="Parking available" sub="On-site or nearby parking" value={parkingOnly} onChange={setParkingOnly} />
+          <ToggleRow label={t('filters.openNow')} sub={t('filters.openNow.sub')} value={openNowOnly} onChange={setOpenNowOnly} />
+          <ToggleRow label={t('filters.instantBook')} sub={t('filters.instantBook.sub')} value={instantOnly} onChange={setInstantOnly} />
+          <ToggleRow label={t('filters.freeCancel')} sub={t('filters.freeCancel.sub')} value={freeCancelOnly} onChange={setFreeCancelOnly} />
         </section>
 
         {/* Actions */}
@@ -709,13 +1058,13 @@ function AllFiltersSheet({
             onClick={onClear}
             className="h-12 rounded-full border border-line/70 text-[13px] font-semibold leading-none inline-flex items-center justify-center"
           >
-            Clear all
+            {t('filters.clearAll')}
           </button>
           <button
             onClick={onClose}
             className="h-12 rounded-full bg-ink text-canvas text-[13px] font-semibold leading-none inline-flex items-center justify-center"
           >
-            Apply
+            {t('filters.apply')}
           </button>
         </div>
       </div>
