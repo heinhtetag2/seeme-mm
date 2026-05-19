@@ -1,23 +1,12 @@
 import { useState } from 'react'
-import {
-  Bell, CalendarCheck, MessageSquare, Star, Sparkles, BellOff, Settings2,
-  type LucideIcon,
-} from 'lucide-react'
+import { BellOff, Settings2 } from 'lucide-react'
 import { SubScreenHeader } from '../components/SubScreenHeader'
 import {
   SAMPLE_NOTIFICATIONS, PROVIDER_BY_ID,
-  type AppNotification, type NotificationKind,
+  type AppNotification,
 } from '../data'
 import { useT } from '../i18n'
 import type { View } from '../nav'
-
-const ICON_BY_KIND: Record<NotificationKind, LucideIcon> = {
-  'booking-confirmed': CalendarCheck,
-  'booking-reminder': Bell,
-  'provider-message': MessageSquare,
-  'review-request': Star,
-  'promo': Sparkles,
-}
 
 export function NotificationsScreen({ onBack, go }: { onBack: () => void; go: (v: View) => void }) {
   const t = useT()
@@ -99,35 +88,28 @@ function Group({ label, items, onTap }: { label: string; items: AppNotification[
 }
 
 function Row({ n, onTap }: { n: AppNotification; onTap: () => void }) {
-  const Icon = ICON_BY_KIND[n.kind]
   const provider = n.providerId ? PROVIDER_BY_ID[n.providerId] : undefined
   const meta = provider
     ? `${provider.area}, ${provider.city}`
     : n.kind === 'promo' ? 'Seeme' : null
 
   return (
-    <button onClick={onTap} className="w-full flex items-start gap-3 py-4 text-left">
-      <span className={`relative shrink-0 h-9 w-9 grid place-items-center
-        ${n.unread ? 'text-brand' : 'text-ink-muted'}`}>
-        <Icon size={18} strokeWidth={1.7} />
-        {n.unread && <span className="absolute top-0 right-0.5 h-2 w-2 rounded-full bg-brand ring-2 ring-canvas" />}
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2">
-          <div className={`text-[13.5px] tracking-tight truncate ${n.unread ? 'font-semibold text-ink' : 'text-ink-muted font-medium'}`}>
-            {n.title}
-          </div>
-          <span className="text-[10.5px] text-ink-dim shrink-0 tabular-nums">{n.when}</span>
+    <button onClick={onTap} className="w-full py-4 text-left">
+      <div className="flex items-baseline gap-2">
+        <div className={`flex items-center gap-2 min-w-0 text-[13.5px] tracking-tight ${n.unread ? 'font-semibold text-ink' : 'text-ink-muted font-medium'}`}>
+          {n.unread && <span aria-hidden className="shrink-0 h-1.5 w-1.5 rounded-full bg-brand" />}
+          <span className="truncate">{n.title}</span>
         </div>
-        <p className={`text-[12px] mt-0.5 leading-relaxed ${n.unread ? 'text-ink-muted' : 'text-ink-dim'}`}>
-          {n.body}
-        </p>
-        {meta && (
-          <div className="text-[11px] text-ink-dim font-medium mt-1.5">
-            {meta}
-          </div>
-        )}
+        <span className="ml-auto text-[10.5px] text-ink-dim shrink-0 tabular-nums">{n.when}</span>
       </div>
+      <p className={`text-[12px] mt-1 leading-relaxed ${n.unread ? 'text-ink-muted' : 'text-ink-dim'}`}>
+        {n.body}
+      </p>
+      {meta && (
+        <div className="text-[11px] text-ink-dim font-medium mt-1.5">
+          {meta}
+        </div>
+      )}
     </button>
   )
 }
