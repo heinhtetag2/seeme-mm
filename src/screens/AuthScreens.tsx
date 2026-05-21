@@ -412,11 +412,14 @@ function AuthOtp({
   // Auto-advance once the user fills all 6 digits — show a short "Verifying…"
   // state so the transition feels intentional rather than instantaneous.
   useEffect(() => {
-    if (!full || verifying) return
+    if (!full) return
     setVerifying(true)
     const id = setTimeout(onContinue, 600)
     return () => clearTimeout(id)
-  }, [full, verifying, onContinue])
+    // Depend only on `full`: including `verifying`/`onContinue` makes the
+    // effect re-run when verifying flips, whose cleanup cancels the timeout.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [full])
 
   return (
     <>
