@@ -12,6 +12,8 @@ export type Category = {
   name: string
   tagline: string
   Icon: ComponentType<LucideProps>
+  /** PNG category icon (1024² transparent). */
+  image: string
   /** Tailwind gradient stops for hero / pill backgrounds. */
   gradient: string
   /** Tailwind text colour used on light tinted chips. */
@@ -26,6 +28,7 @@ export const CATEGORIES: Category[] = [
     name: 'Hospital',
     tagline: 'Clinics, hospitals, specialists',
     Icon: Stethoscope,
+    image: '/images/categories/hospital.png',
     gradient: 'from-evergreen-50 to-tropic-50',
     tint: 'text-evergreen-50',
     soft: 'bg-alpha-evergreen-20',
@@ -35,6 +38,7 @@ export const CATEGORIES: Category[] = [
     name: 'Spa & Salon',
     tagline: 'Hair, nails, massage',
     Icon: Scissors,
+    image: '/images/categories/salon.png',
     gradient: 'from-rust-50 to-sakura-50',
     tint: 'text-rust-50',
     soft: 'bg-alpha-rust-20',
@@ -44,6 +48,7 @@ export const CATEGORIES: Category[] = [
     name: 'Home Services',
     tagline: 'Cleaning, plumbing, electric',
     Icon: Wrench,
+    image: '/images/categories/homeservice.png',
     gradient: 'from-data-yellow-40 to-ember-50',
     tint: 'text-data-yellow-40',
     soft: 'bg-alpha-ember-20',
@@ -53,6 +58,7 @@ export const CATEGORIES: Category[] = [
     name: 'Fitness',
     tagline: 'Trainers, yoga, classes',
     Icon: Dumbbell,
+    image: '/images/categories/fitness.png',
     gradient: 'from-tropic-50 to-ocean-50',
     tint: 'text-tropic-50',
     soft: 'bg-alpha-tropic-20',
@@ -62,15 +68,17 @@ export const CATEGORIES: Category[] = [
     name: 'Tutor',
     tagline: 'Languages, subjects, music',
     Icon: GraduationCap,
+    image: '/images/categories/tutor.png',
     gradient: 'from-iris-50 to-sakura-50',
     tint: 'text-iris-50',
     soft: 'bg-alpha-iris-20',
   },
   {
     id: 'auto',
-    name: 'Auto',
+    name: 'Car',
     tagline: 'Repair, wash, tyres',
     Icon: Car,
+    image: '/images/categories/car.png',
     gradient: 'from-rust-60 to-rust-50',
     tint: 'text-rust-60',
     soft: 'bg-alpha-rust-20',
@@ -1258,7 +1266,7 @@ export type City = (typeof CITIES)[number]
 export const me = {
   name: 'Hein Htet',
   phone: '+95 9 •••• 3421',
-  email: 'hein@bookly.mm',
+  email: 'hein@seeme.mm',
   city: 'Yangon',
   joined: 'May 2026',
 }
@@ -1266,7 +1274,7 @@ export const me = {
 export const account = {
   displayName: 'Hein Htet',
   loginPhoneMasked: '+95 9 •••• 3421',
-  recoveryEmail: 'hein@bookly.mm',
+  recoveryEmail: 'hein@seeme.mm',
   notifications: true,
   city: 'Yangon',
 }

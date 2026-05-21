@@ -126,7 +126,7 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
       onClick={onClick}
       className={`shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11.5px] font-semibold leading-none transition
         ${active
-          ? 'bg-ink text-canvas'
+          ? 'bg-brand text-white'
           : 'bg-surface-elevated border border-line/60 text-ink-muted hover:border-line-strong'}`}
     >
       {children}
@@ -165,7 +165,7 @@ function SortSheet({
                   onClick={() => onPick(s)}
                   className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-surface-higher transition text-left"
                 >
-                  <span className={`grid place-items-center h-9 w-9 rounded-full ${isSel ? 'bg-ink text-canvas' : 'bg-surface-higher text-ink-muted'}`}>
+                  <span className={`grid place-items-center h-9 w-9 rounded-full ${isSel ? 'bg-brand text-white' : 'bg-surface-higher text-ink-muted'}`}>
                     <m.Icon size={14.5} strokeWidth={2.2} />
                   </span>
                   <span className="flex-1 text-[13.5px] font-semibold tracking-tight text-ink">{t(m.tKey)}</span>

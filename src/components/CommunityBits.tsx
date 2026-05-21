@@ -336,7 +336,7 @@ export function SharePostSheet({ post, onClose }: { post: Post; onClose: () => v
           </button>
           <button
             onClick={moreShare}
-            className="h-12 inline-flex items-center justify-center gap-2 rounded-full bg-ink text-canvas text-[13px] font-semibold"
+            className="h-12 inline-flex items-center justify-center gap-2 rounded-full bg-brand text-white text-[13px] font-semibold"
           >
             <Share2 size={14} strokeWidth={2.2} />
             {t('community.share.more')}

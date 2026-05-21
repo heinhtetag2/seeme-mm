@@ -161,6 +161,28 @@
   --color-base-sunbeam-50: #ebf212;
   --color-base-sunbeam-70: #d8e003;
 
+  /* Gold — secondary brand ramp (warm metallic) */
+  --color-base-gold-10: #fbf4e3;
+  --color-base-gold-20: #f3e6c0;
+  --color-base-gold-30: #e6cd86;
+  --color-base-gold-40: #d3af4f;
+  --color-base-gold-50: #bf9b30;
+  --color-base-gold-60: #9c7d22;
+  --color-base-gold-70: #6f5816;
+  --color-base-gold-80: #46370d;
+
+  /* Rausch — signature rose/red brand ramp (100 lightest → 1000 darkest) */
+  --color-base-rausch-100:  #fff5f6;
+  --color-base-rausch-200:  #ffeef0;
+  --color-base-rausch-300:  #fee5e7;
+  --color-base-rausch-400:  #ffd2d7;
+  --color-base-rausch-500:  #ffabb6;
+  --color-base-rausch-600:  #ff385c;
+  --color-base-rausch-700:  #da1249;
+  --color-base-rausch-800:  #a21039;
+  --color-base-rausch-900:  #732139;
+  --color-base-rausch-1000: #361a21;
+
   /* Brand */
   --color-brand-hubspot-10:  #ffe2db;
   --color-brand-hubspot-50:  #ff7a59;
@@ -280,7 +302,7 @@
   --canvas:           255 255 255;   /* sand-0  */
   --surface:          248 247 247;   /* sand-10 */
   --surface-elevated: 255 255 255;
-  --surface-higher:   235 235 234;   /* sand-20 */
+  --surface-higher:   242 241 240;   /* softened (was sand-20 235 235 234) */
   --line:             216 214 212;   /* sand-30 */
   --line-strong:      176 173 171;   /* sand-40 */
   --ink:               43  41  38;   /* sand-80 — body text */
@@ -288,13 +310,26 @@
   --ink-dim:          119 115 110;   /* sand-50 */
   --active-bg:        235 235 234;   /* sand-20 */
 
-  /* Brand: terracotta (rust ramp) — primary CTAs / key brand moments. */
-  --brand:        209  69  50;   /* rust-50 */
-  --brand-2:      158  50  37;   /* rust-60 */
-  --brand-soft:   254 219 215;   /* rust-20 */
+  /* Brand: rausch (rose/red ramp) — primary CTAs / key brand moments. */
+  --brand:        255  56  92;   /* rausch-600 */
+  --brand-2:      218  18  73;   /* rausch-700 */
+  --brand-soft:   254 229 231;   /* rausch-300 */
 
-  /* Editorial accent: ember (warm ochre) — kickers / small highlights. */
-  --accent-warm:  206 131  69;   /* ember-40 */
+  /* Secondary brand: gold — kickers / small highlights. */
+  --accent-warm:  156 125  34;   /* gold-60 */
+
+  /* Stylized map palette (light) — used by the Apple-style SVG map. */
+  --map-land:           #EFE6D2;
+  --map-block:          #E5DCC4;
+  --map-park:           #CCE4B7;
+  --map-water:          #B6D8E8;
+  --map-road-major-cas: #D9CFB4; /* casing */
+  --map-road-major:     #FBF7EE;
+  --map-road-2nd-cas:   #E6DCBE;
+  --map-road-2nd:       #FFFFFF;
+  --map-road-minor:     #F2EBD6;
+  --map-label-land:     #8C8472;
+  --map-label-water:    #6E9BB5;
 
   /* Type */
   --serif: 'Fraunces', 'Iowan Old Style', Georgia, serif;
@@ -314,6 +349,25 @@
   --ink-muted:        168 167 162;
   --ink-dim:          117 117 113;
   --active-bg:         18  18  20;
+
+  /* Brand soft fallback (also set dynamically by useAccent on theme flip). */
+  --brand-soft:        77  23  38;
+
+  /* Secondary brand: gold — lighter shade so kickers stay readable on near-black. */
+  --accent-warm:      230 205 134;   /* gold-30 */
+
+  /* Stylized map palette (dark) — inspired by Apple Maps dark theme. */
+  --map-land:           #1c1e22;
+  --map-block:          #23262c;
+  --map-park:           #2d3a2a;
+  --map-water:          #1d3552;
+  --map-road-major-cas: #2e3038;
+  --map-road-major:     #3a3d46;
+  --map-road-2nd-cas:   #2a2c33;
+  --map-road-2nd:       #34373f;
+  --map-road-minor:     #25272c;
+  --map-label-land:     #7a7a80;
+  --map-label-water:    #5d7d93;
 
   /* Elevation surfaces tint up in dark mode */
   --color-base-elevation-elevation-1: #16161a;

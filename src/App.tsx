@@ -34,8 +34,8 @@ import { CommunityScreen } from './screens/CommunityScreen'
 import { PostDetailScreen } from './screens/PostDetailScreen'
 import { ComposePostScreen } from './screens/ComposePostScreen'
 import { CommunitySearchScreen } from './screens/CommunitySearchScreen'
-import { useTheme, useAccent } from './theme'
-import { me, REVIEWS_SEED, type Review } from './data'
+import { useTheme } from './theme'
+import { me, REVIEWS_SEED, type CategoryId, type Review } from './data'
 import { POSTS_SEED, type Post, type Comment } from './community'
 import type { Tab, View } from './nav'
 import type { Booking } from './data'
@@ -43,7 +43,6 @@ import type { GeneratedLook } from './studio'
 
 export default function App() {
   useTheme()
-  useAccent()
   const [tab, setTab] = useState<Tab>('home')
   const [stack, setStack] = useState<View[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -53,6 +52,9 @@ export default function App() {
   const [profile, setProfile] = useState<AuthProfile>({ name: me.name, city: me.city, phone: me.phone })
   const [city, setCity] = useState<string>(me.city)
   const [exploreMode, setExploreMode] = useState<'list' | 'map'>('list')
+  /** Pre-applied category filter when Explore is opened. Lifted so a tap on a
+   *  Home category tile can switch tabs with the filter already set. */
+  const [exploreCategory, setExploreCategory] = useState<'all' | CategoryId>('all')
   /** All reviews — seeded + user-authored ones from this session. */
   const [reviews, setReviews] = useState<Review[]>(REVIEWS_SEED)
   /** Reviews the current user has marked helpful. */
@@ -78,7 +80,13 @@ export default function App() {
       return next
     })
   const addComment = (postId: string, body: string, parentCommentId?: string) => {
-    const author = { id: me.email, name: me.name, initial: me.name[0], verifiedVisitor: true, city: me.city }
+    const author = {
+      id: profile.email ?? me.email,
+      name: profile.name,
+      initial: profile.name[0] ?? me.name[0],
+      verifiedVisitor: true,
+      city: profile.city,
+    }
     setPosts((prev) =>
       prev.map((p) => {
         if (p.id !== postId) return p
@@ -217,11 +225,24 @@ export default function App() {
                   go={go}
                   setTab={goTab}
                   city={city}
+                  firstName={profile.name}
                   onNearby={() => { setExploreMode('map'); goTab('explore') }}
+                  onPickCategory={(catId) => {
+                    setExploreCategory(catId)
+                    setExploreMode('list')
+                    goTab('explore')
+                  }}
                 />
               )}
               {!inSubScreen && tab === 'explore' && (
-                <ExploreScreen city={city} mode={exploreMode} setMode={setExploreMode} go={go} />
+                <ExploreScreen
+                  city={city}
+                  mode={exploreMode}
+                  setMode={setExploreMode}
+                  category={exploreCategory}
+                  setCategory={setExploreCategory}
+                  go={go}
+                />
               )}
               {!inSubScreen && tab === 'community' && (
                 <CommunityScreen
@@ -239,6 +260,7 @@ export default function App() {
               )}
               {!inSubScreen && tab === 'me' && (
                 <MeScreen
+                  profile={profile}
                   go={go}
                   setTab={goTab}
                   savedCount={favorites.size}
@@ -279,6 +301,7 @@ export default function App() {
               <WriteReviewScreen
                 providerId={current.providerId}
                 initialStaffId={current.staffId}
+                authorName={profile.name}
                 onBack={back}
                 onSubmit={addReview}
               />
@@ -443,7 +466,7 @@ export default function App() {
               <button
                 onClick={() => go({ kind: 'community-compose' })}
                 aria-label="New post"
-                className="absolute bottom-[104px] right-5 z-[35] h-12 w-12 grid place-items-center rounded-full bg-ink text-canvas shadow-[0_2px_6px_-1px_rgba(0,0,0,0.18),0_12px_32px_-8px_rgba(0,0,0,0.28)] active:scale-95 transition"
+                className="absolute bottom-[104px] right-5 z-[35] h-12 w-12 grid place-items-center rounded-full bg-brand text-white shadow-[0_2px_6px_-1px_rgba(0,0,0,0.18),0_12px_32px_-8px_rgba(0,0,0,0.28)] active:scale-95 transition"
               >
                 <SquarePen size={16} strokeWidth={2} />
               </button>

@@ -177,7 +177,7 @@ export function StaffProfileScreen({
           </div>
           <button
             onClick={() => go({ kind: 'book', providerId: provider.id, staffId: staff.id })}
-            className="w-full h-12 rounded-full bg-ink text-canvas text-[14px] font-semibold leading-none active:opacity-90"
+            className="w-full h-12 rounded-full bg-brand text-white text-[14px] font-semibold leading-none active:opacity-90"
           >
             {t('staff.bookWith', { name: staff.name.split(' ')[0] })}
           </button>

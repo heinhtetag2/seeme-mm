@@ -94,7 +94,7 @@ export function StudioCompareScreen({
         <div className="absolute inset-x-0 bottom-0 z-40 bg-canvas/95 backdrop-blur border-t border-line/60 px-5 pt-3 pb-5">
           <button
             onClick={() => go({ kind: 'studio-result', lookId: winnerLook.id })}
-            className="w-full h-12 rounded-full bg-ink text-canvas inline-flex items-center justify-center gap-2 text-[13px] font-semibold"
+            className="w-full h-12 rounded-full bg-brand text-white inline-flex items-center justify-center gap-2 text-[13px] font-semibold"
           >
             Book this look <ArrowUpRight size={14} strokeWidth={2.4} />
           </button>
@@ -142,7 +142,7 @@ function CompareCard({
         </div>
       </div>
       {isWinner && (
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-brand text-canvas text-[11px] font-semibold inline-flex items-center gap-1">
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-brand text-white text-[11px] font-semibold inline-flex items-center gap-1">
           <Check size={11} strokeWidth={3} /> Pick
         </div>
       )}

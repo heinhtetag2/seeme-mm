@@ -142,7 +142,7 @@ export function BookFlowScreen({
       )}
 
       {/* Step: service */}
-      <Step kicker="Step 1" title={t('book.step.service')}>
+      <Step kicker={t('book.stepN', { n: 1 })} title={t('book.step.service')}>
         <div className="divide-y divide-line/60 border-y border-line/60">
           {provider.services.map((s, i) => {
             const isSel = serviceId === s.id
@@ -158,7 +158,7 @@ export function BookFlowScreen({
               >
                 <div className="flex items-baseline gap-3 min-w-0">
                   <span className={`relative top-0.5 h-4 w-4 rounded-full grid place-items-center transition shrink-0
-                    ${isSel ? 'bg-ink' : 'border border-line-strong'}`}>
+                    ${isSel ? 'bg-brand' : 'border border-line-strong'}`}>
                     {isSel && <Check size={9} strokeWidth={3.4} className="text-canvas" />}
                   </span>
                   <div className="min-w-0">
@@ -182,7 +182,7 @@ export function BookFlowScreen({
 
       {/* Step: specialist */}
       {staff.length > 0 && (
-        <Step kicker="Step 2" title={t('book.step.specialist')}>
+        <Step kicker={t('book.stepN', { n: 2 })} title={t('book.step.specialist')}>
           <div className="flex gap-2.5 overflow-x-auto -mx-5 px-5 pb-2 scrollbar-hide">
             <AnyStaffCard selected={staffId === undefined} onClick={() => setStaffId(undefined)} />
             {staff.map((s) => (
@@ -209,7 +209,7 @@ export function BookFlowScreen({
       )}
 
       {/* Step: date — quick-pick chips + "Pick date" opens a full calendar sheet */}
-      <Step kicker={staff.length > 0 ? 'Step 3' : 'Step 2'} title={t('book.step.date')}>
+      <Step kicker={t('book.stepN', { n: staff.length > 0 ? 3 : 2 })} title={t('book.step.date')}>
         <div className="flex flex-wrap gap-2">
           {quickPicks.map((p) => {
             const closed = isDayClosed(closedDays, p.iso)
@@ -246,7 +246,7 @@ export function BookFlowScreen({
       </Step>
 
       {/* Step: time — grouped by part of day */}
-      <Step kicker={staff.length > 0 ? 'Step 4' : 'Step 3'} title={t('book.step.when')}>
+      <Step kicker={t('book.stepN', { n: staff.length > 0 ? 4 : 3 })} title={t('book.step.when')}>
         {dateIsClosed ? (
           <UnavailableNotice
             title="Closed this day"
@@ -271,7 +271,7 @@ export function BookFlowScreen({
       </Step>
 
       {/* Step: payment */}
-      <Step kicker={staff.length > 0 ? 'Step 5' : 'Step 4'} title={t('book.step.payment')}>
+      <Step kicker={t('book.stepN', { n: staff.length > 0 ? 5 : 4 })} title={t('book.step.payment')}>
         <PaymentPicker methods={paymentMethods} value={payment} onChange={setPayment} />
         {payment !== 'cash' && (
           <p className="mt-2.5 text-[11.5px] text-ink-muted">
@@ -281,7 +281,7 @@ export function BookFlowScreen({
       </Step>
 
       {/* Step: details */}
-      <Step kicker={staff.length > 0 ? 'Step 6' : 'Step 5'} title={t('book.step.details')}>
+      <Step kicker={t('book.stepN', { n: staff.length > 0 ? 6 : 5 })} title={t('book.step.details')}>
         <div className="flex items-center justify-between py-3 border-y border-line/60 mb-3">
           <div>
             <div className="text-[13.5px] font-semibold">{t('book.party')}</div>
@@ -339,7 +339,7 @@ export function BookFlowScreen({
           })}
           disabled={!canContinue}
           className={`w-full h-12 rounded-full text-[14px] font-semibold leading-none inline-flex items-center justify-center transition
-            ${canContinue ? 'bg-ink text-canvas active:opacity-90' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
+            ${canContinue ? 'bg-brand text-white active:opacity-90' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
         >
           {t('book.continue')}
         </button>
@@ -390,7 +390,7 @@ function UnavailableNotice({
       <p className="text-[12px] text-ink-muted mt-1.5 max-w-[280px] mx-auto">{sub}</p>
       <button
         onClick={onAction}
-        className="mt-3.5 inline-flex items-center justify-center h-9 px-4 rounded-full bg-ink text-canvas text-[12px] font-semibold leading-none"
+        className="mt-3.5 inline-flex items-center justify-center h-9 px-4 rounded-full bg-brand text-white text-[12px] font-semibold leading-none"
       >
         {actionLabel}
       </button>
@@ -441,7 +441,7 @@ function TimeGroup({
                 ${isOff
                   ? 'bg-surface-elevated border-line/70 text-ink-dim line-through cursor-not-allowed opacity-50'
                   : isSel
-                    ? 'bg-ink text-canvas border-ink'
+                    ? 'bg-brand text-white border-brand'
                     : 'bg-surface-elevated border-line/70 text-ink-muted hover:border-line-strong hover:text-ink'}`}
             >
               {s}
@@ -454,20 +454,24 @@ function TimeGroup({
 }
 
 function Stepper({ value, onChange, min, max }: { value: number; onChange: (n: number) => void; min: number; max: number }) {
+  const atMin = value <= min
+  const atMax = value >= max
   return (
     <div className="flex items-center gap-3">
       <button
         onClick={() => onChange(Math.max(min, value - 1))}
-        className="h-9 w-9 rounded-full border border-line/70 grid place-items-center disabled:opacity-40"
-        disabled={value <= min}
+        className={`h-9 w-9 rounded-full border grid place-items-center transition ${atMin ? 'border-line/40 text-ink-dim cursor-not-allowed' : 'border-line/70 text-ink'}`}
+        disabled={atMin}
+        aria-label="Decrease"
       >
         <Minus size={13} strokeWidth={2.4} />
       </button>
       <span className="w-5 text-center text-[15px] font-bold tabular-nums">{value}</span>
       <button
         onClick={() => onChange(Math.min(max, value + 1))}
-        className="h-9 w-9 rounded-full border border-line/70 grid place-items-center disabled:opacity-40"
-        disabled={value >= max}
+        className={`h-9 w-9 rounded-full border grid place-items-center transition ${atMax ? 'border-line/40 text-ink-dim cursor-not-allowed' : 'border-line/70 text-ink'}`}
+        disabled={atMax}
+        aria-label="Increase"
       >
         <Plus size={13} strokeWidth={2.4} />
       </button>
@@ -539,7 +543,7 @@ function DateChip({
         ${disabled
           ? 'bg-surface-elevated text-ink-dim border-line/70 line-through cursor-not-allowed opacity-60'
           : selected
-            ? 'bg-ink text-canvas border-ink'
+            ? 'bg-brand text-white border-brand'
             : 'bg-surface-elevated text-ink border-line/70 hover:border-line-strong'}`}
     >
       {children}
@@ -611,7 +615,7 @@ function DateSheet({
                 onClick={() => onPick(cell.iso)}
                 className={`h-10 rounded-full text-[13px] font-semibold leading-none tabular-nums inline-flex items-center justify-center transition
                   ${isSel
-                    ? 'bg-ink text-canvas'
+                    ? 'bg-brand text-white'
                     : off
                       ? `text-ink-dim cursor-not-allowed ${isClosed && !isPast && !isFar ? 'line-through opacity-70' : ''}`
                       : 'text-ink hover:bg-surface-higher'}`}

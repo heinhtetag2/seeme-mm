@@ -99,7 +99,7 @@ export function EditProfileScreen({
 
         <button
           onClick={save}
-          className="w-full mt-7 h-12 rounded-full bg-ink text-canvas text-[14px] font-semibold"
+          className="w-full mt-7 h-12 rounded-full bg-brand text-white text-[14px] font-semibold"
         >
           {t('profile.save')}
         </button>
@@ -148,7 +148,7 @@ export function LanguageScreen({ onBack }: { onBack: () => void }) {
                 <div className="text-[11.5px] text-ink-muted mt-0.5">{l.sub}</div>
               </div>
               {lang === l.id && (
-                <span className="h-5 w-5 rounded-full bg-ink text-canvas grid place-items-center">
+                <span className="h-5 w-5 rounded-full bg-brand text-white grid place-items-center">
                   <Check size={11} strokeWidth={3} />
                 </span>
               )}
@@ -189,7 +189,7 @@ export function AppearanceScreen({ onBack }: { onBack: () => void }) {
             >
               <div className="flex-1 text-[14px] font-semibold tracking-tight">{t(it.tKey)}</div>
               {theme === it.id && (
-                <span className="h-5 w-5 rounded-full bg-ink text-canvas grid place-items-center">
+                <span className="h-5 w-5 rounded-full bg-brand text-white grid place-items-center">
                   <Check size={11} strokeWidth={3} />
                 </span>
               )}
@@ -236,7 +236,7 @@ function Toggle({ title, sub, value, onChange }: { title: string; sub: string; v
         <div className="text-[11.5px] text-ink-muted mt-0.5">{sub}</div>
       </div>
       <span
-        className={`relative h-6 w-11 rounded-full transition shrink-0 ${value ? 'bg-ink' : 'bg-line-strong'}`}
+        className={`relative h-6 w-11 rounded-full transition shrink-0 ${value ? 'bg-brand' : 'bg-line-strong'}`}
       >
         <span className={`absolute top-0.5 ${value ? 'left-[22px]' : 'left-0.5'} h-5 w-5 rounded-full bg-canvas transition-all`} />
       </span>
@@ -253,7 +253,7 @@ export function AboutScreen({ onBack }: { onBack: () => void }) {
       <SubScreenHeader onBack={onBack} />
       <div className="flex-1 flex flex-col items-center justify-center px-8 py-16 text-center">
         <div className="h-14 w-14 rounded-[14px] bg-ink grid place-items-center mb-5">
-          <span className="font-serif font-bold text-[26px] -tracking-[0.04em] text-canvas leading-none">B</span>
+          <span className="font-serif font-bold text-[26px] -tracking-[0.04em] text-canvas leading-none">S</span>
         </div>
         <div className="kicker mb-1">{t('settings.kicker.about')}</div>
         <h1 className="font-serif text-[26px] font-semibold tracking-tight">Seeme</h1>
@@ -270,6 +270,7 @@ export function AboutScreen({ onBack }: { onBack: () => void }) {
 
 export function HelpScreen({ onBack }: { onBack: () => void }) {
   const t = useT()
+  const toast = useToast()
   return (
     <div className="absolute inset-0 z-30 bg-canvas overflow-y-auto scrollbar-hide pb-10 animate-slide-up">
       <SubScreenHeader onBack={onBack} />
@@ -280,18 +281,33 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
         </h1>
 
         <div className="divide-y divide-line/60 border-y border-line/60">
-          <HelpRow Icon={MessageCircle} label={t('help.contact')} sub="support@bookly.mm" />
-          <HelpRow Icon={FileText} label={t('help.faq')} sub={t('help.faqSub')} />
-          <HelpRow Icon={Mail} label={t('help.report')} sub={t('help.reportSub')} />
+          <HelpRow
+            Icon={MessageCircle}
+            label={t('help.contact')}
+            sub="support@seeme.mm"
+            onClick={() => { window.location.href = 'mailto:support@seeme.mm' }}
+          />
+          <HelpRow
+            Icon={FileText}
+            label={t('help.faq')}
+            sub={t('help.faqSub')}
+            onClick={() => toast.show(t('help.faqSub'), 'info')}
+          />
+          <HelpRow
+            Icon={Mail}
+            label={t('help.report')}
+            sub={t('help.reportSub')}
+            onClick={() => { window.location.href = 'mailto:support@seeme.mm?subject=Report%20a%20problem' }}
+          />
         </div>
       </div>
     </div>
   )
 }
 
-function HelpRow({ Icon, label, sub }: { Icon: LucideIcon; label: string; sub: string }) {
+function HelpRow({ Icon, label, sub, onClick }: { Icon: LucideIcon; label: string; sub: string; onClick?: () => void }) {
   return (
-    <button className="w-full flex items-center gap-3 py-4 text-left">
+    <button onClick={onClick} className="w-full flex items-center gap-3 py-4 text-left">
       <Icon size={15} strokeWidth={1.8} className="text-ink-muted shrink-0" />
       <div className="flex-1 min-w-0">
         <div className="text-[14px] font-semibold tracking-tight">{label}</div>
@@ -398,7 +414,7 @@ export function AccountSettingsScreen({
           body="You'll still be able to sign in with your email and phone. You can re-link Google any time."
           confirmLabel="Unlink"
           onCancel={() => setConfirmUnlink(false)}
-          onConfirm={() => { setConfirmUnlink(false); toast.show('Google unlink is mocked', 'info') }}
+          onConfirm={() => { setConfirmUnlink(false); toast.show(t('account.toast.googleUnlinked'), 'success') }}
         />
       )}
 
@@ -411,7 +427,7 @@ export function AccountSettingsScreen({
           confirmLabel="Delete account"
           confirmTone="destructive"
           onCancel={() => setConfirmDelete(false)}
-          onConfirm={() => { setConfirmDelete(false); toast.show('Account deletion is mocked', 'info'); onSignOut() }}
+          onConfirm={() => { setConfirmDelete(false); toast.show(t('account.toast.deleted'), 'info'); onSignOut() }}
         />
       )}
     </div>
@@ -450,7 +466,7 @@ function ConfirmSheet({
           <button
             onClick={onConfirm}
             className={`h-12 rounded-full text-[13px] font-semibold leading-none inline-flex items-center justify-center
-              ${confirmTone === 'destructive' ? 'bg-rust-50 text-canvas' : 'bg-ink text-canvas'}`}
+              ${confirmTone === 'destructive' ? 'bg-rust-50 text-canvas' : 'bg-brand text-white'}`}
           >
             {confirmLabel}
           </button>
@@ -469,6 +485,7 @@ export function AccountChangeScreen({
   profile: AuthProfile | null
   onBack: () => void
 }) {
+  const t = useT()
   const toast = useToast()
   const [showPassword, setShowPassword] = useState(false)
 
@@ -619,12 +636,17 @@ export function AccountChangeScreen({
         <button
           onClick={() => {
             if (!canSave) return
-            toast.show(`${field === 'password' ? 'Password update' : field === 'email' ? 'Email change' : 'Phone change'} is mocked in this prototype`, 'info')
+            toast.show(
+              field === 'password' ? t('account.toast.passwordSaved')
+                : field === 'email' ? t('account.toast.emailSaved')
+                : t('account.toast.phoneSaved'),
+              'success',
+            )
             onBack()
           }}
           disabled={!canSave}
           className={`w-full h-12 rounded-full text-[13.5px] font-semibold leading-none inline-flex items-center justify-center transition
-            ${canSave ? 'bg-ink text-canvas' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
+            ${canSave ? 'bg-brand text-white' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
         >
           {saveLabel}
         </button>

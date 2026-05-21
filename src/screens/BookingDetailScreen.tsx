@@ -143,7 +143,7 @@ export function BookingDetailScreen({
       {/* Fixed footer — actions always visible without scrolling */}
       <div className="shrink-0 bg-canvas border-t border-line/60 px-5 pt-3.5 pb-5">
         <div className="flex items-baseline justify-between mb-3">
-          <span className="text-[12.5px] text-ink-muted">Total</span>
+          <span className="text-[12.5px] text-ink-muted">{t('book.total')}</span>
           <span className="font-serif text-[20px] font-semibold tabular-nums tracking-tight">{formatMMK(total)}</span>
         </div>
 
@@ -168,13 +168,14 @@ export function BookingDetailScreen({
                 <RefreshCw size={13} strokeWidth={2} />
                 {t('bookings.detail.reschedule')}
               </button>
-              <button
+              <a
+                href="tel:+95912345678"
                 onClick={() => show(t('toast.callingProvider'))}
-                className="h-11 rounded-full bg-ink text-canvas text-[12.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
+                className="h-11 rounded-full bg-brand text-white text-[12.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
               >
                 <Phone size={13} strokeWidth={2} />
                 {t('bookings.detail.contactProvider')}
-              </button>
+              </a>
             </div>
             <button
               onClick={() => setConfirmCancel(true)}
@@ -190,7 +191,7 @@ export function BookingDetailScreen({
           <div className="grid grid-cols-1 gap-2.5">
             <button
               onClick={() => go({ kind: 'write-review', providerId: provider.id, bookingId: booking.id, staffId: booking.staffId })}
-              className="h-12 rounded-full bg-ink text-canvas text-[13.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
+              className="h-12 rounded-full bg-brand text-white text-[13.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
             >
               <PencilLine size={14} strokeWidth={2.2} />
               {t('bookings.leaveReview')}
@@ -208,7 +209,7 @@ export function BookingDetailScreen({
         {booking.status === 'cancelled' && (
           <button
             onClick={() => go({ kind: 'book', providerId: provider.id, serviceId: booking.serviceId })}
-            className="w-full h-12 rounded-full bg-ink text-canvas text-[13.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
+            className="w-full h-12 rounded-full bg-brand text-white text-[13.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
           >
             <RotateCcw size={14} strokeWidth={2.2} />
             {t('bookings.bookAgain')}

@@ -89,7 +89,7 @@ export function StudioScreen({
           {saved.length >= 2 && (
             <button
               onClick={() => go({ kind: 'studio-compare', lookIds: saved.slice(0, 2).map((l) => l.id) })}
-              className="mt-4 w-full h-11 rounded-full bg-ink text-canvas inline-flex items-center justify-center gap-1.5 text-[12.5px] font-semibold leading-none"
+              className="mt-4 w-full h-11 rounded-full bg-brand text-white inline-flex items-center justify-center gap-1.5 text-[12.5px] font-semibold leading-none"
             >
               Compare top 2 <ArrowUpRight size={13} strokeWidth={2.4} />
             </button>

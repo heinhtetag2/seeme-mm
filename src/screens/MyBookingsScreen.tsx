@@ -23,9 +23,9 @@ export function MyBookingsScreen({
 
   return (
     <div className="px-5 pt-2 pb-2 animate-fade-in">
-      <div className="kicker mb-1.5">SCHEDULE</div>
+      <div className="kicker mb-1.5">{t('bookings.kicker')}</div>
       <h1 className="font-serif text-[26px] leading-[1.05] tracking-tight font-semibold mb-5">
-        Your bookings.
+        {t('bookings.headline')}
       </h1>
 
       {/* Tabs as quiet underlines (not pill-stuffed) */}
@@ -64,7 +64,7 @@ function UnderlineTab({ active, onClick, count, children }: { active: boolean; o
           {count}
         </span>
       )}
-      {active && <span className="absolute -bottom-px left-0 right-0 h-[2px] bg-ink rounded-full" />}
+      {active && <span className="absolute -bottom-px left-0 right-0 h-[2px] bg-brand rounded-full" />}
     </button>
   )
 }
@@ -105,7 +105,7 @@ function TripCard({ booking, onClick }: { booking: Booking; onClick: () => void 
           <div className="mt-2 flex items-center gap-2 text-[11.5px] text-ink-muted">
             <span>{booking.time}</span>
             <span className="text-ink-dim">·</span>
-            <span>{booking.party ?? 1} {(booking.party ?? 1) === 1 ? 'person' : 'people'}</span>
+            <span>{t((booking.party ?? 1) === 1 ? 'bookings.partyPerson' : 'bookings.partyPeople', { count: booking.party ?? 1 })}</span>
             <span className="text-ink-dim">·</span>
             <span className="font-semibold text-ink tabular-nums">{formatMMK(total)}</span>
           </div>
@@ -146,14 +146,12 @@ function Empty({ pane, onCTA }: { pane: 'upcoming' | 'past'; onCTA: () => void }
       <p className="text-[12.5px] text-ink-muted mt-1.5 max-w-[260px] mx-auto">
         {t(pane === 'upcoming' ? 'bookings.empty.upcoming.sub' : 'bookings.empty.past.sub')}
       </p>
-      {pane === 'upcoming' && (
-        <button
-          onClick={onCTA}
-          className="mt-5 h-10 px-5 rounded-full bg-ink text-canvas text-[12.5px] font-semibold"
-        >
-          {t('bookings.findProvider')}
-        </button>
-      )}
+      <button
+        onClick={onCTA}
+        className="mt-5 h-10 px-5 rounded-full bg-brand text-white text-[12.5px] font-semibold"
+      >
+        {t('bookings.findProvider')}
+      </button>
     </div>
   )
 }

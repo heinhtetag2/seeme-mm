@@ -194,7 +194,7 @@ export function BookReviewScreen({
         </div>
         <button
           onClick={onConfirm}
-          className="w-full h-12 rounded-full bg-ink text-canvas text-[14px] font-semibold leading-none inline-flex items-center justify-center active:opacity-90"
+          className="w-full h-12 rounded-full bg-brand text-white text-[14px] font-semibold leading-none inline-flex items-center justify-center active:opacity-90"
         >
           {t('book.confirm')}
         </button>

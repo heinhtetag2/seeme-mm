@@ -3,7 +3,7 @@ import { Check } from 'lucide-react'
 import { SubScreenHeader } from '../components/SubScreenHeader'
 import { StarRating } from '../components/Reviews'
 import { StaffCard } from '../components/StaffCard'
-import { PROVIDER_BY_ID, staffByProvider, STAFF_BY_ID, type Review } from '../data'
+import { PROVIDER_BY_ID, staffByProvider, STAFF_BY_ID, me as defaultMe, type Review } from '../data'
 import { useToast } from '../components/Toast'
 import { useT } from '../i18n'
 
@@ -23,11 +23,13 @@ const PROMPTS = [
 export function WriteReviewScreen({
   providerId,
   initialStaffId,
+  authorName,
   onBack,
   onSubmit,
 }: {
   providerId: string
   initialStaffId?: string
+  authorName?: string
   onBack: () => void
   onSubmit: (r: Review) => void
 }) {
@@ -61,16 +63,14 @@ export function WriteReviewScreen({
 
   const submit = () => {
     if (!canSubmit) return
-    const initial = (() => {
-      const raw = 'You'
-      return raw.charAt(0)
-    })()
+    const displayName = (authorName ?? defaultMe.name).trim() || 'You'
+    const initial = displayName.charAt(0).toUpperCase()
     const enriched = body.trim() + (tags.size ? `\n\n— ${[...tags].join(' · ')}` : '')
     const review: Review = {
       id: `rv_${Date.now()}`,
       providerId,
       staffId,
-      authorName: 'You',
+      authorName: displayName,
       authorInitial: initial,
       rating,
       body: enriched,
@@ -119,7 +119,7 @@ export function WriteReviewScreen({
                   onClick={() => toggleTag(p)}
                   className={`inline-flex items-center gap-1 h-8 px-3 rounded-full text-[12px] font-semibold leading-none transition
                     ${active
-                      ? 'bg-ink text-canvas border border-ink'
+                      ? 'bg-brand text-white border border-brand'
                       : 'bg-surface-elevated border border-line/70 text-ink-muted hover:border-line-strong'}`}
                 >
                   {active && <Check size={11} strokeWidth={3} />}
@@ -152,7 +152,7 @@ export function WriteReviewScreen({
                 onClick={() => setStaffId(undefined)}
                 className={`shrink-0 h-10 px-4 inline-flex items-center justify-center rounded-full text-[12px] font-semibold border
                   ${staffId === undefined
-                    ? 'bg-ink text-canvas border-ink'
+                    ? 'bg-brand text-white border-brand'
                     : 'bg-surface-elevated border-line/70 text-ink-muted'}`}
               >
                 No specific person
@@ -182,7 +182,7 @@ export function WriteReviewScreen({
           onClick={submit}
           disabled={!canSubmit}
           className={`w-full h-12 rounded-full text-[14px] font-semibold leading-none inline-flex items-center justify-center transition
-            ${canSubmit ? 'bg-ink text-canvas active:opacity-90' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
+            ${canSubmit ? 'bg-brand text-white active:opacity-90' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
         >
           Post review
         </button>

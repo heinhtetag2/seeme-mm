@@ -58,7 +58,7 @@ export function StudioResultScreen({
         onBack={onBack}
         right={
           <button
-            onClick={() => isSaved ? unsaveLook(look.id) : (saveLook(look), toast('Saved to favourites'))}
+            onClick={() => isSaved ? unsaveLook(look.id) : (saveLook(look), toast(t('toast.savedToFavourites')))}
             className="h-10 w-10 grid place-items-center rounded-full border border-line/70 bg-surface/80 backdrop-blur"
           >
             <Heart
@@ -94,13 +94,13 @@ export function StudioResultScreen({
             onClick={() => toast(t('toast.sharingSoon'))}
             className="flex-1 h-10 rounded-full border border-line/70 text-[12px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
           >
-            <Share2 size={12} strokeWidth={2.2} /> Share
+            <Share2 size={12} strokeWidth={2.2} /> {t('share.title')}
           </button>
           <button
-            onClick={() => toast('Saved to camera roll (demo)')}
+            onClick={() => toast(t('toast.savedToCameraRoll'))}
             className="flex-1 h-10 rounded-full border border-line/70 text-[12px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
           >
-            <Download size={12} strokeWidth={2.2} /> Save image
+            <Download size={12} strokeWidth={2.2} /> {t('studio.result.saveImage')}
           </button>
         </div>
 
@@ -108,13 +108,17 @@ export function StudioResultScreen({
         <div className="px-5 mt-9">
           <div className="kicker mb-1">{t('studio.result.bookKicker')}</div>
           <h2 className="font-serif text-[20px] leading-[1.1] tracking-tight font-semibold">
-            Studios that do it well
+            {t('studio.result.studiosThatDoIt')}
           </h2>
           <p className="text-[12px] text-ink-muted mt-1">
-            Hand-picked {cat.bookKeyword} specialists in your area.
+            {t('studio.result.handPicked', { keyword: cat.bookKeyword })}
           </p>
           <div className="mt-4 space-y-3">
-            {providers.map((p) => (
+            {providers.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-line/70 bg-surface-elevated/40 px-4 py-6 text-center">
+                <p className="text-[12.5px] text-ink-muted">{t('studio.result.noStudios')}</p>
+              </div>
+            ) : providers.map((p) => (
               <ProviderMini key={p.id} provider={p} onClick={() => go({ kind: 'book', providerId: p.id, lookId: look.id })} />
             ))}
           </div>
@@ -125,10 +129,10 @@ export function StudioResultScreen({
       <div className="absolute inset-x-0 bottom-0 z-40 bg-canvas/95 backdrop-blur border-t border-line/60 px-5 pt-3 pb-5">
         <button
           onClick={() => providers[0] && go({ kind: 'book', providerId: providers[0].id, lookId: look.id })}
-          className="w-full h-12 rounded-full bg-brand text-canvas inline-flex items-center justify-center gap-2 text-[13px] font-semibold leading-none disabled:opacity-50"
+          className="w-full h-12 rounded-full bg-brand text-white inline-flex items-center justify-center gap-2 text-[13px] font-semibold leading-none disabled:opacity-50"
           disabled={!providers[0]}
         >
-          Book this look <ArrowUpRight size={14} strokeWidth={2.4} />
+          {t('studio.generate.bookLook')} <ArrowUpRight size={14} strokeWidth={2.4} />
         </button>
       </div>
     </div>

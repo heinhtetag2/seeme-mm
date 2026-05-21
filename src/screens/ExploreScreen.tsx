@@ -13,16 +13,23 @@ export function ExploreScreen({
   city,
   mode,
   setMode,
+  category,
+  setCategory,
   go,
 }: {
   city: string
   mode: Mode
   setMode: (m: Mode) => void
+  /** Controlled category filter — lifted to App so Home category taps can
+   *  switch to Explore with the filter pre-applied. */
+  category: 'all' | CategoryId
+  setCategory: (c: 'all' | CategoryId) => void
   go: (v: View) => void
 }) {
   const t = useT()
   const [q, setQ] = useState('')
-  const [filter, setFilter] = useState<'all' | CategoryId>('all')
+  const filter = category
+  const setFilter = setCategory
   // Search scope — answers "where am I looking?" Tapping the search-pill
   // subtitle opens a location picker. Scopes with `coords` filter providers by
   // haversine distance; coordless scopes are pass-through.
@@ -400,12 +407,12 @@ export function ExploreScreen({
             aria-label="All filters"
             className={`shrink-0 inline-flex items-center gap-1.5 h-8 rounded-full transition
               ${activeFilterCount > 0
-                ? 'bg-ink text-canvas pl-2.5 pr-1'
+                ? 'bg-brand text-white pl-2.5 pr-1'
                 : 'bg-canvas text-ink border border-line/70 w-8 justify-center'}`}
           >
             <SlidersHorizontal size={13} strokeWidth={2.1} />
             {activeFilterCount > 0 && (
-              <span className="h-5 min-w-5 px-1.5 grid place-items-center rounded-full bg-canvas text-ink text-[11px] font-bold tabular-nums">
+              <span className="h-5 min-w-5 px-1.5 grid place-items-center rounded-full bg-canvas text-brand text-[11px] font-bold tabular-nums">
                 {activeFilterCount}
               </span>
             )}
@@ -787,7 +794,7 @@ function ScopeRow({
         {sub && <div className="text-[11px] text-ink-muted truncate mt-0.5">{sub}</div>}
       </div>
       {selected && (
-        <span className="shrink-0 h-5 w-5 rounded-full bg-ink grid place-items-center">
+        <span className="shrink-0 h-5 w-5 rounded-full bg-brand text-white grid place-items-center">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
             <path d="M2 5.5L4.5 8L9 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-canvas" />
           </svg>
@@ -832,7 +839,7 @@ function SavedPlaceRow({
   return (
     <div className="flex items-center gap-3 py-3 border-b border-line/50 last:border-b-0">
       <button onClick={() => onPick(place)} className="flex-1 flex items-center gap-3 text-left min-w-0">
-        <div className={`shrink-0 h-9 w-9 rounded-full grid place-items-center ${selected ? 'bg-ink text-canvas' : 'bg-surface-higher text-ink-muted'}`}>
+        <div className={`shrink-0 h-9 w-9 rounded-full grid place-items-center ${selected ? 'bg-brand text-white' : 'bg-surface-higher text-ink-muted'}`}>
           <Icon size={15} strokeWidth={2} />
         </div>
         <div className="flex-1 min-w-0">
@@ -923,7 +930,7 @@ function PickerOption({
         {label}
       </span>
       {selected && (
-        <span className="h-5 w-5 rounded-full bg-ink grid place-items-center">
+        <span className="h-5 w-5 rounded-full bg-brand text-white grid place-items-center">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
             <path d="M2 5.5L4.5 8L9 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-canvas" />
           </svg>
@@ -987,7 +994,7 @@ function AllFiltersSheet({
                 onClick={() => setMinRating(r)}
                 className={`inline-flex items-center gap-1 h-8 px-3 rounded-full text-[11.5px] font-semibold transition
                   ${minRating === r
-                    ? 'bg-ink text-canvas'
+                    ? 'bg-brand text-white'
                     : 'bg-canvas border border-line/70 text-ink'}`}
               >
                 {r == null ? t('filters.any') : (
@@ -1062,7 +1069,7 @@ function AllFiltersSheet({
           </button>
           <button
             onClick={onClose}
-            className="h-12 rounded-full bg-ink text-canvas text-[13px] font-semibold leading-none inline-flex items-center justify-center"
+            className="h-12 rounded-full bg-brand text-white text-[13px] font-semibold leading-none inline-flex items-center justify-center"
           >
             {t('filters.apply')}
           </button>
@@ -1089,7 +1096,7 @@ function ToggleRow({
         <div className="text-[13.5px] font-semibold tracking-tight">{label}</div>
         <div className="text-[11.5px] text-ink-muted mt-0.5 truncate">{sub}</div>
       </div>
-      <span className={`shrink-0 h-6 w-10 rounded-full p-0.5 transition ${value ? 'bg-ink' : 'bg-surface-higher'}`}>
+      <span className={`shrink-0 h-6 w-10 rounded-full p-0.5 transition ${value ? 'bg-brand' : 'bg-surface-higher'}`}>
         <span className={`block h-5 w-5 rounded-full bg-canvas transition-transform shadow-soft ${value ? 'translate-x-4' : 'translate-x-0'}`} />
       </span>
     </button>
@@ -1318,7 +1325,8 @@ function MapCanvas({
 }
 
 /* Apple Maps-flavored backdrop: tileable city pattern + featured water/parks/labels.
-   Sized at -inset-[150%] so the user can pan far in any direction and still see streets. */
+   Colors are driven by CSS variables (--map-*) defined in index.css so the
+   palette flips with light/dark mode automatically. */
 function AppleStyleMap() {
   return (
     <svg
@@ -1327,12 +1335,26 @@ function AppleStyleMap() {
       preserveAspectRatio="xMidYMid slice"
       aria-hidden
     >
+      <style>{`
+        .m-land  { fill: var(--map-land); }
+        .m-block { fill: var(--map-block); }
+        .m-park  { fill: var(--map-park); }
+        .m-water { fill: var(--map-water); }
+        .m-river { stroke: var(--map-water); }
+        .m-road-major     { stroke: var(--map-road-major); }
+        .m-road-major-cas { stroke: var(--map-road-major-cas); }
+        .m-road-2nd       { stroke: var(--map-road-2nd); }
+        .m-road-2nd-cas   { stroke: var(--map-road-2nd-cas); }
+        .m-road-minor     { stroke: var(--map-road-minor); }
+        .m-label-land  { fill: var(--map-label-land); }
+        .m-label-water { fill: var(--map-label-water); }
+      `}</style>
       <defs>
         <pattern id="map-tile" x="0" y="0" width="200" height="280" patternUnits="userSpaceOnUse">
-          <rect width="200" height="280" fill="#EFE6D2" />
+          <rect width="200" height="280" className="m-land" />
 
           {/* Building blocks */}
-          <g fill="#E5DCC4">
+          <g className="m-block">
             <rect x="14" y="14" width="60" height="42" rx="2" />
             <rect x="84" y="14" width="44" height="32" rx="2" />
             <rect x="140" y="14" width="48" height="42" rx="2" />
@@ -1348,25 +1370,25 @@ function AppleStyleMap() {
           </g>
 
           {/* Small park */}
-          <ellipse cx="36" cy="148" rx="22" ry="16" fill="#CCE4B7" />
-          <ellipse cx="172" cy="156" rx="20" ry="14" fill="#CCE4B7" />
+          <ellipse cx="36" cy="148" rx="22" ry="16" className="m-park" />
+          <ellipse cx="172" cy="156" rx="20" ry="14" className="m-park" />
 
           {/* Roads — tileable: pass cleanly through edges */}
           <g strokeLinecap="square" fill="none">
             {/* Major horizontal */}
-            <line x1="0" y1="110" x2="200" y2="110" stroke="#D9CFB4" strokeWidth="14" />
-            <line x1="0" y1="110" x2="200" y2="110" stroke="#FBF7EE" strokeWidth="10" />
+            <line x1="0" y1="110" x2="200" y2="110" className="m-road-major-cas" strokeWidth="14" />
+            <line x1="0" y1="110" x2="200" y2="110" className="m-road-major" strokeWidth="10" />
             {/* Major vertical */}
-            <line x1="100" y1="0" x2="100" y2="280" stroke="#D9CFB4" strokeWidth="13" />
-            <line x1="100" y1="0" x2="100" y2="280" stroke="#FBF7EE" strokeWidth="9.5" />
+            <line x1="100" y1="0" x2="100" y2="280" className="m-road-major-cas" strokeWidth="13" />
+            <line x1="100" y1="0" x2="100" y2="280" className="m-road-major" strokeWidth="9.5" />
             {/* Secondary horizontal */}
-            <line x1="0" y1="180" x2="200" y2="180" stroke="#E6DCBE" strokeWidth="8" />
-            <line x1="0" y1="180" x2="200" y2="180" stroke="#FFFFFF" strokeWidth="5" />
+            <line x1="0" y1="180" x2="200" y2="180" className="m-road-2nd-cas" strokeWidth="8" />
+            <line x1="0" y1="180" x2="200" y2="180" className="m-road-2nd" strokeWidth="5" />
             {/* Minor streets */}
-            <line x1="0" y1="40" x2="200" y2="40" stroke="#F2EBD6" strokeWidth="3" />
-            <line x1="0" y1="252" x2="200" y2="252" stroke="#F2EBD6" strokeWidth="3" />
-            <line x1="40" y1="0" x2="40" y2="280" stroke="#F2EBD6" strokeWidth="3" />
-            <line x1="160" y1="0" x2="160" y2="280" stroke="#F2EBD6" strokeWidth="3" />
+            <line x1="0" y1="40" x2="200" y2="40" className="m-road-minor" strokeWidth="3" />
+            <line x1="0" y1="252" x2="200" y2="252" className="m-road-minor" strokeWidth="3" />
+            <line x1="40" y1="0" x2="40" y2="280" className="m-road-minor" strokeWidth="3" />
+            <line x1="160" y1="0" x2="160" y2="280" className="m-road-minor" strokeWidth="3" />
           </g>
         </pattern>
       </defs>
@@ -1379,29 +1401,29 @@ function AppleStyleMap() {
         {/* Big river snaking through */}
         <path
           d="M 760 -20 Q 820 200 780 420 Q 720 640 820 880 Q 900 1100 820 1340 Q 780 1560 880 1820"
-          stroke="#B6D8E8" strokeWidth="120" strokeLinecap="round" fill="none"
+          className="m-river" strokeWidth="120" strokeLinecap="round" fill="none"
         />
         {/* Lakes */}
-        <ellipse cx="220" cy="780" rx="110" ry="70" fill="#B6D8E8" />
-        <ellipse cx="1020" cy="320" rx="80" ry="60" fill="#B6D8E8" />
-        <ellipse cx="380" cy="1380" rx="95" ry="58" fill="#B6D8E8" />
+        <ellipse cx="220" cy="780" rx="110" ry="70" className="m-water" />
+        <ellipse cx="1020" cy="320" rx="80" ry="60" className="m-water" />
+        <ellipse cx="380" cy="1380" rx="95" ry="58" className="m-water" />
 
         {/* Big parks */}
-        <path d="M 480 240 Q 600 220 660 300 Q 650 380 560 400 Q 460 380 450 320 Z" fill="#CCE4B7" />
-        <path d="M 80 1080 Q 200 1060 260 1140 Q 250 1220 160 1240 Q 60 1220 60 1160 Z" fill="#CCE4B7" />
-        <path d="M 980 1480 Q 1120 1470 1160 1560 Q 1130 1640 1020 1640 Q 930 1620 940 1550 Z" fill="#CCE4B7" />
-        <ellipse cx="1100" cy="900" rx="60" ry="48" fill="#CCE4B7" />
-        <ellipse cx="540" cy="980" rx="50" ry="40" fill="#CCE4B7" />
+        <path d="M 480 240 Q 600 220 660 300 Q 650 380 560 400 Q 460 380 450 320 Z" className="m-park" />
+        <path d="M 80 1080 Q 200 1060 260 1140 Q 250 1220 160 1240 Q 60 1220 60 1160 Z" className="m-park" />
+        <path d="M 980 1480 Q 1120 1470 1160 1560 Q 1130 1640 1020 1640 Q 930 1620 940 1550 Z" className="m-park" />
+        <ellipse cx="1100" cy="900" rx="60" ry="48" className="m-park" />
+        <ellipse cx="540" cy="980" rx="50" ry="40" className="m-park" />
 
         {/* Labels */}
         <g fontFamily="system-ui, -apple-system, sans-serif" fontWeight="500">
-          <text x="560" y="320" fontSize="13" fill="#8C8472" textAnchor="middle">Hlaing Park</text>
-          <text x="160" y="1180" fontSize="13" fill="#8C8472" textAnchor="middle">People's Sq</text>
-          <text x="1060" y="1580" fontSize="12" fill="#8C8472" textAnchor="middle">Botataung Park</text>
-          <text x="800" y="700" fontSize="14" fill="#6E9BB5" fontStyle="italic" textAnchor="middle">Yangon River</text>
-          <text x="220" y="780" fontSize="12" fill="#6E9BB5" fontStyle="italic" textAnchor="middle">Inya Lake</text>
-          <text x="380" y="1380" fontSize="11" fill="#6E9BB5" fontStyle="italic" textAnchor="middle">Kandawgyi</text>
-          <text x="540" y="990" fontSize="10" fill="#8C8472" textAnchor="middle">Sule</text>
+          <text x="560" y="320" fontSize="13" className="m-label-land" textAnchor="middle">Hlaing Park</text>
+          <text x="160" y="1180" fontSize="13" className="m-label-land" textAnchor="middle">People's Sq</text>
+          <text x="1060" y="1580" fontSize="12" className="m-label-land" textAnchor="middle">Botataung Park</text>
+          <text x="800" y="700" fontSize="14" className="m-label-water" fontStyle="italic" textAnchor="middle">Yangon River</text>
+          <text x="220" y="780" fontSize="12" className="m-label-water" fontStyle="italic" textAnchor="middle">Inya Lake</text>
+          <text x="380" y="1380" fontSize="11" className="m-label-water" fontStyle="italic" textAnchor="middle">Kandawgyi</text>
+          <text x="540" y="990" fontSize="10" className="m-label-land" textAnchor="middle">Sule</text>
         </g>
       </g>
     </svg>
@@ -1500,7 +1522,7 @@ function CategoryFilterChip({
       onClick={onClick}
       className={`shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[12px] font-semibold leading-none whitespace-nowrap transition
         ${active
-          ? 'bg-ink text-canvas'
+          ? 'bg-brand text-white'
           : 'bg-canvas/95 backdrop-blur text-ink border border-line/70'}`}
     >
       {Icon && <Icon size={13} strokeWidth={2.1} />}
@@ -1515,7 +1537,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       onClick={onClick}
       className={`shrink-0 inline-flex items-center justify-center px-3.5 h-8 rounded-full border text-[11.5px] font-semibold leading-none whitespace-nowrap transition shadow-soft
         ${active
-          ? 'bg-ink text-canvas border-ink'
+          ? 'bg-brand text-white border-brand'
           : 'bg-canvas/95 backdrop-blur text-ink-muted border-line/70 hover:border-line-strong'}`}
     >
       {children}
@@ -1538,14 +1560,14 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 inline-flex items-center gap-1 h-8 pl-3 pr-2 rounded-full bg-canvas text-ink text-[11.5px] font-semibold transition
+      className={`shrink-0 inline-flex items-center gap-1 h-8 pl-3 pr-2 rounded-full text-[11.5px] font-semibold transition
         ${active
-          ? 'border-[1.5px] border-ink'
-          : 'border border-line/70'}`}
+          ? 'bg-brand text-white border-[1.5px] border-brand'
+          : 'bg-canvas text-ink border border-line/70'}`}
     >
-      {Icon && <Icon size={12} strokeWidth={2.1} className="text-ink" />}
+      {Icon && <Icon size={12} strokeWidth={2.1} className={active ? 'text-white' : 'text-ink'} />}
       {label}
-      <ChevronDown size={13} strokeWidth={2.2} className={active ? 'text-ink' : 'text-ink-muted'} />
+      <ChevronDown size={13} strokeWidth={2.2} className={active ? 'text-white' : 'text-ink-muted'} />
     </button>
   )
 }
@@ -1566,7 +1588,7 @@ function NoMatch({ hasQuery, onClear }: { hasQuery: boolean; onClear: () => void
       {hasQuery && (
         <button
           onClick={onClear}
-          className="mt-5 h-10 px-5 rounded-full bg-ink text-canvas text-[12.5px] font-semibold"
+          className="mt-5 h-10 px-5 rounded-full bg-brand text-white text-[12.5px] font-semibold"
         >
           Clear search
         </button>

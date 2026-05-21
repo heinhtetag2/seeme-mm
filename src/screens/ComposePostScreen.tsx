@@ -63,7 +63,7 @@ export function ComposePostScreen({
             onClick={submit}
             disabled={!canPost}
             className={`h-9 px-4 rounded-full text-[12.5px] font-semibold leading-none transition
-              ${canPost ? 'bg-ink text-canvas' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
+              ${canPost ? 'bg-brand text-white' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
           >
             {t('community.compose.cta')}
           </button>
@@ -219,7 +219,7 @@ export function ComposePostScreen({
           onClick={submit}
           disabled={!canPost}
           className={`w-full h-12 rounded-full text-[14px] font-semibold leading-none inline-flex items-center justify-center transition
-            ${canPost ? 'bg-ink text-canvas' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
+            ${canPost ? 'bg-brand text-white' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
         >
           {t('community.compose.submit')}
         </button>

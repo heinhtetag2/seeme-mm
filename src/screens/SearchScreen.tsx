@@ -3,7 +3,7 @@ import { Search, X, ChevronLeft, ChevronDown, Check, Map as MapIcon, Star } from
 import { ProviderRow } from '../components/ProviderCard'
 import {
   CATEGORIES, CITIES, PROVIDERS, searchProviders,
-  type CategoryId, type City, type Provider, type LatLng,
+  type CategoryId, type Provider, type LatLng,
 } from '../data'
 import { useT } from '../i18n'
 import type { View } from '../nav'
@@ -36,7 +36,19 @@ export function SearchScreen({
   const t = useT()
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<Sort>('recommended')
-  const [city, setCity] = useState<City>((CITIES.find((c) => c === initialCity) as City) ?? 'All cities')
+  /** Union of the hand-picked CITIES list + any city actually present in the
+   *  provider data (Bago, Sittwe, …) + the city the user arrived with. */
+  const cityOptions = useMemo<string[]>(() => {
+    const set = new Set<string>(CITIES as readonly string[])
+    PROVIDERS.forEach((p) => set.add(p.city))
+    if (initialCity) set.add(initialCity)
+    const all = Array.from(set)
+    // Keep "All cities" first, then the rest alphabetically.
+    return ['All cities', ...all.filter((c) => c !== 'All cities').sort()]
+  }, [initialCity])
+  const [city, setCity] = useState<string>(
+    cityOptions.includes(initialCity) ? initialCity : 'All cities',
+  )
   const [category, setCategory] = useState<'all' | CategoryId>('all')
   const [verifiedOnly, setVerifiedOnly] = useState(false)
   const [filterSheet, setFilterSheet] = useState<null | 'sort' | 'city' | 'category'>(null)
@@ -190,7 +202,7 @@ export function SearchScreen({
       )}
       {filterSheet === 'city' && (
         <Sheet title={t('sheet.city')} onClose={() => setFilterSheet(null)}>
-          {CITIES.map((c) => (
+          {cityOptions.map((c) => (
             <SheetRow key={c} label={c} selected={city === c} onClick={() => { setCity(c); setFilterSheet(null) }} />
           ))}
         </Sheet>
@@ -211,16 +223,16 @@ export function SearchScreen({
 
 function MapBackdrop() {
   return (
-    <div className="absolute inset-0 bg-gradient-to-br from-tropic-10 via-sand-10 to-pebble-10">
-      {/* Streets */}
-      <div className="absolute h-[3px] left-[-10%] right-[-10%] bg-white/85 rounded-full -rotate-[6deg]" style={{ top: '24%' }} />
-      <div className="absolute h-[2px] left-[-10%] right-[-10%] bg-white/70 rounded-full rotate-[10deg]" style={{ top: '46%' }} />
-      <div className="absolute h-[2px] left-[-10%] right-[-10%] bg-white/65 rounded-full -rotate-[14deg]" style={{ top: '68%' }} />
-      <div className="absolute w-[2.5px] top-[-10%] bottom-[-10%] bg-white/80 rounded-full" style={{ left: '30%' }} />
-      <div className="absolute w-[2px] top-[-10%] bottom-[-10%] bg-white/70 rounded-full" style={{ left: '70%' }} />
+    <div className="absolute inset-0 bg-gradient-to-br from-tropic-10 via-sand-10 to-pebble-10 dark:from-[#15171c] dark:via-[#0f1115] dark:to-[#191b21]">
+      {/* Streets — bright on light, dim teal on dark. */}
+      <div className="absolute h-[3px] left-[-10%] right-[-10%] bg-white/85 dark:bg-white/12 rounded-full -rotate-[6deg]" style={{ top: '24%' }} />
+      <div className="absolute h-[2px] left-[-10%] right-[-10%] bg-white/70 dark:bg-white/10 rounded-full rotate-[10deg]" style={{ top: '46%' }} />
+      <div className="absolute h-[2px] left-[-10%] right-[-10%] bg-white/65 dark:bg-white/8 rounded-full -rotate-[14deg]" style={{ top: '68%' }} />
+      <div className="absolute w-[2.5px] top-[-10%] bottom-[-10%] bg-white/80 dark:bg-white/12 rounded-full" style={{ left: '30%' }} />
+      <div className="absolute w-[2px] top-[-10%] bottom-[-10%] bg-white/70 dark:bg-white/10 rounded-full" style={{ left: '70%' }} />
       {/* Grid */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 dark:opacity-50"
         style={{
           backgroundImage:
             'linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)',
@@ -228,10 +240,10 @@ function MapBackdrop() {
         }}
       />
       {/* Park blobs */}
-      <div className="absolute h-16 w-20 rounded-[40%] bg-moss-20/80" style={{ top: '8%', right: '6%' }} />
-      <div className="absolute h-12 w-14 rounded-[45%] bg-moss-20/60" style={{ bottom: '24%', left: '14%' }} />
+      <div className="absolute h-16 w-20 rounded-[40%] bg-moss-20/80 dark:bg-moss-70/50" style={{ top: '8%', right: '6%' }} />
+      <div className="absolute h-12 w-14 rounded-[45%] bg-moss-20/60 dark:bg-moss-70/40" style={{ bottom: '24%', left: '14%' }} />
       {/* Water */}
-      <div className="absolute h-24 w-28 rounded-[55%] bg-ocean-20/40" style={{ top: '36%', left: '-8%' }} />
+      <div className="absolute h-24 w-28 rounded-[55%] bg-ocean-20/40 dark:bg-ocean-70/40" style={{ top: '36%', left: '-8%' }} />
     </div>
   )
 }
@@ -292,7 +304,7 @@ function DropChip({ active, onClick, children }: { active: boolean; onClick: () 
       onClick={onClick}
       className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full border text-[12.5px] font-semibold leading-none whitespace-nowrap transition
         ${active
-          ? 'bg-ink text-canvas border-ink'
+          ? 'bg-brand text-white border-brand'
           : 'bg-surface-elevated text-ink border-line/70 hover:border-line-strong'}`}
     >
       {children}
@@ -307,7 +319,7 @@ function ToggleChip({ active, onClick, children }: { active: boolean; onClick: (
       onClick={onClick}
       className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full border text-[12.5px] font-semibold leading-none whitespace-nowrap transition
         ${active
-          ? 'bg-ink text-canvas border-ink'
+          ? 'bg-brand text-white border-brand'
           : 'bg-surface-elevated text-ink border-line/70 hover:border-line-strong'}`}
     >
       {active && <Check size={11} strokeWidth={2.6} />}
@@ -334,7 +346,7 @@ function SheetRow({ label, selected, onClick }: { label: string; selected: boole
     <button onClick={onClick} className="w-full flex items-center justify-between gap-3 py-3.5 text-left">
       <span className="text-[14px] font-semibold tracking-tight">{label}</span>
       {selected && (
-        <span className="h-5 w-5 rounded-full bg-ink text-canvas grid place-items-center">
+        <span className="h-5 w-5 rounded-full bg-brand text-white grid place-items-center">
           <Check size={11} strokeWidth={3} />
         </span>
       )}

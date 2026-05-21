@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 export function PhoneFrame({ children }: { children: ReactNode }) {
   return (
     <div
-      className="relative w-full max-w-[390px] aspect-[390/844] md:my-4 md:max-h-[calc(100svh-2rem)] rounded-[48px] md:border md:border-line/60 md:shadow-soft overflow-hidden md:p-[6px] md:bg-line"
+      className="relative w-full max-w-[390px] aspect-[390/844] md:my-4 md:max-h-[calc(100svh-2rem)] rounded-[48px] md:border md:border-line/60 md:shadow-[0_0_48px_-14px_rgba(0,0,0,0.16),0_18px_48px_-24px_rgba(0,0,0,0.2)] overflow-hidden md:p-[6px] md:bg-line"
     >
       <div className="relative h-full w-full rounded-[42px] overflow-hidden bg-canvas isolate">
         {/* iOS status bar mock */}
@@ -26,27 +26,27 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
 
 function SignalIcon() {
   return (
-    <svg width="18" height="10" viewBox="0 0 18 10" fill="none">
-      <rect x="0" y="6" width="3" height="4" rx="0.5" fill="white" />
-      <rect x="5" y="4" width="3" height="6" rx="0.5" fill="white" />
-      <rect x="10" y="2" width="3" height="8" rx="0.5" fill="white" />
-      <rect x="15" y="0" width="3" height="10" rx="0.5" fill="white" />
+    <svg width="18" height="10" viewBox="0 0 18 10" fill="none" className="text-ink">
+      <rect x="0" y="6" width="3" height="4" rx="0.5" fill="currentColor" />
+      <rect x="5" y="4" width="3" height="6" rx="0.5" fill="currentColor" />
+      <rect x="10" y="2" width="3" height="8" rx="0.5" fill="currentColor" />
+      <rect x="15" y="0" width="3" height="10" rx="0.5" fill="currentColor" />
     </svg>
   )
 }
 function WifiIcon() {
   return (
-    <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
-      <path d="M8 10.5l1.5-1.5a2 2 0 00-3 0L8 10.5zM8 7l3-3a5 5 0 00-6 0l3 3zM8 3.5l5-5a8 8 0 00-10 0l5 5z" fill="white" />
+    <svg width="16" height="11" viewBox="0 0 16 11" fill="none" className="text-ink">
+      <path d="M8 10.5l1.5-1.5a2 2 0 00-3 0L8 10.5zM8 7l3-3a5 5 0 00-6 0l3 3zM8 3.5l5-5a8 8 0 00-10 0l5 5z" fill="currentColor" />
     </svg>
   )
 }
 function BatteryIcon() {
   return (
-    <svg width="26" height="12" viewBox="0 0 26 12" fill="none">
-      <rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="white" strokeOpacity="0.6" />
-      <rect x="2" y="2" width="17" height="8" rx="1.5" fill="white" />
-      <rect x="23.5" y="4" width="2" height="4" rx="1" fill="white" fillOpacity="0.6" />
+    <svg width="26" height="12" viewBox="0 0 26 12" fill="none" className="text-ink">
+      <rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="currentColor" strokeOpacity="0.6" />
+      <rect x="2" y="2" width="17" height="8" rx="1.5" fill="currentColor" />
+      <rect x="23.5" y="4" width="2" height="4" rx="1" fill="currentColor" fillOpacity="0.6" />
     </svg>
   )
 }

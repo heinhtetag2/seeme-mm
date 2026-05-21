@@ -35,7 +35,7 @@ export function StaffCard({
       onClick={onClick}
       className={`group shrink-0 w-[180px] text-left p-3 rounded-2xl border bg-surface-elevated transition active:scale-[0.98]
         ${selected
-          ? 'border-ink shadow-[0_0_0_2px_rgb(var(--ink))_inset]'
+          ? 'border-brand shadow-[0_0_0_2px_rgb(var(--brand))_inset]'
           : 'border-line/70 hover:border-line-strong'}`}
     >
       <div className="flex items-start gap-2.5">
@@ -49,7 +49,7 @@ export function StaffCard({
         </div>
         {mode === 'select' && (
           <span className={`h-5 w-5 rounded-full grid place-items-center shrink-0 transition
-            ${selected ? 'bg-ink text-canvas' : 'border border-line-strong'}`}>
+            ${selected ? 'bg-brand text-white' : 'border border-line-strong'}`}>
             {selected && <Check size={11} strokeWidth={3.4} />}
           </span>
         )}
@@ -87,7 +87,7 @@ export function AnyStaffCard({
       onClick={onClick}
       className={`shrink-0 w-[180px] text-left p-3 rounded-2xl border bg-surface-elevated transition active:scale-[0.98]
         ${selected
-          ? 'border-ink shadow-[0_0_0_2px_rgb(var(--ink))_inset]'
+          ? 'border-brand shadow-[0_0_0_2px_rgb(var(--brand))_inset]'
           : 'border-line/70 hover:border-line-strong'}`}
     >
       <div className="flex items-start gap-2.5">
@@ -99,7 +99,7 @@ export function AnyStaffCard({
           <div className="text-[10.5px] text-ink-muted truncate mt-0.5">First open slot</div>
         </div>
         <span className={`h-5 w-5 rounded-full grid place-items-center shrink-0 transition
-          ${selected ? 'bg-ink text-canvas' : 'border border-line-strong'}`}>
+          ${selected ? 'bg-brand text-white' : 'border border-line-strong'}`}>
           {selected && <Check size={11} strokeWidth={3.4} />}
         </span>
       </div>

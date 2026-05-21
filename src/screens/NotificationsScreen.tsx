@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { BellOff, Settings2 } from 'lucide-react'
+import { useToast } from '../components/Toast'
 import { SubScreenHeader } from '../components/SubScreenHeader'
 import {
   SAMPLE_NOTIFICATIONS, PROVIDER_BY_ID,
@@ -10,13 +11,17 @@ import type { View } from '../nav'
 
 export function NotificationsScreen({ onBack, go }: { onBack: () => void; go: (v: View) => void }) {
   const t = useT()
+  const { show } = useToast()
   const [items, setItems] = useState<AppNotification[]>(SAMPLE_NOTIFICATIONS)
 
   const unreadCount = items.filter((n) => n.unread).length
   const today = items.filter((n) => /^\d+ h$/.test(n.when))
   const earlier = items.filter((n) => !/^\d+ h$/.test(n.when))
 
-  const markAllRead = () => setItems((arr) => arr.map((n) => ({ ...n, unread: false })))
+  const markAllRead = () => {
+    setItems((arr) => arr.map((n) => ({ ...n, unread: false })))
+    show(t('notifs.markedAllRead'))
+  }
   const tap = (n: AppNotification) => {
     setItems((arr) => arr.map((x) => (x.id === n.id ? { ...x, unread: false } : x)))
     if (n.bookingId) go({ kind: 'booking-detail', bookingId: n.bookingId })
@@ -31,13 +36,13 @@ export function NotificationsScreen({ onBack, go }: { onBack: () => void; go: (v
           <>
             {unreadCount > 0 && (
               <button onClick={markAllRead} className="inline-flex items-center justify-center text-[12px] font-semibold leading-none text-ink px-3 h-9 rounded-full border border-line/70">
-                Mark all read
+                {t('notifs.markAllRead')}
               </button>
             )}
             <button
               onClick={() => go({ kind: 'notif-prefs' })}
               className="h-9 w-9 grid place-items-center rounded-full border border-line/70"
-              aria-label="Notification preferences"
+              aria-label={t('notifs.prefs.aria')}
             >
               <Settings2 size={14} strokeWidth={2} className="text-ink" />
             </button>
@@ -46,12 +51,12 @@ export function NotificationsScreen({ onBack, go }: { onBack: () => void; go: (v
       />
 
       <div className="px-5">
-        <div className="kicker mb-1.5">INBOX</div>
+        <div className="kicker mb-1.5">{t('notifs.kicker')}</div>
         <h1 className="font-serif text-[28px] leading-[1.05] tracking-tight font-semibold">
-          Notifications
+          {t('notifs.title')}
           {unreadCount > 0 && (
             <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-brand text-white text-[11px] font-semibold tabular-nums align-middle">
-              {unreadCount} new
+              {t('notifs.newCount', { count: unreadCount })}
             </span>
           )}
         </h1>
@@ -61,10 +66,10 @@ export function NotificationsScreen({ onBack, go }: { onBack: () => void; go: (v
         ) : (
           <div className="mt-7">
             {today.length > 0 && (
-              <Group label="TODAY" items={today} onTap={tap} />
+              <Group label={t('notifs.group.today')} items={today} onTap={tap} />
             )}
             {earlier.length > 0 && (
-              <Group label="EARLIER" items={earlier} onTap={tap} />
+              <Group label={t('notifs.group.earlier')} items={earlier} onTap={tap} />
             )}
           </div>
         )}

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 export type Lang = 'en' | 'my'
 
-const KEY = 'bookly:lang:v2'
+const KEY = 'seeme:lang:v2'
 
 export const LANGS: { id: Lang; label: string; sub: string }[] = [
   { id: 'en', label: 'English', sub: 'English' },
@@ -158,11 +158,65 @@ const en: Dict = {
   'auth.profile.city.label': 'City',
   'auth.profile.continue': 'Continue',
 
+  // Auth — choice footer
+  'auth.choice.newPrompt': 'New to Seeme?',
+  'auth.choice.createAccount': 'Create an account',
+
+  // Auth — email sign in
+  'auth.signin.headline': 'Sign in to Seeme.',
+  'auth.signin.sub': 'Use the email and password tied to your account.',
+  'auth.signin.passwordPlaceholder': 'Password',
+  'auth.signin.forgot': 'Forgot password?',
+  'auth.signin.cta': 'Sign in',
+  'auth.signin.verifying': 'Verifying…',
+  'auth.password.show': 'Show password',
+  'auth.password.hide': 'Hide password',
+
+  // Auth — sign up
+  'auth.signup.kicker': 'CREATE ACCOUNT',
+  'auth.signup.headline': 'Welcome to Seeme.',
+  'auth.signup.sub': 'Set up your account in seconds. We’ll save you a spot in the community.',
+  'auth.signup.namePlaceholder': 'Full name',
+  'auth.signup.emailPlaceholder': 'Email',
+  'auth.signup.passwordPlaceholder': 'Password (min 6 characters)',
+  'auth.signup.cta': 'Create account',
+  'auth.signup.havePrompt': 'Already have an account?',
+  'auth.signup.signIn': 'Sign in',
+
+  // Auth — forgot password
+  'auth.forgot.kicker': 'RESET PASSWORD',
+  'auth.forgot.headline': 'Forgot it? No worries.',
+  'auth.forgot.sub': 'Enter the email you signed up with — we’ll send a secure reset link.',
+  'auth.forgot.placeholder': 'you@example.com',
+  'auth.forgot.cta': 'Send reset link',
+  'auth.forgot.sentKicker': 'CHECK YOUR INBOX',
+  'auth.forgot.sentHeadline': 'Reset link sent.',
+  'auth.forgot.sentSub': 'We’ve emailed a secure link to {email}. It expires in 15 minutes.',
+  'auth.forgot.back': 'Back to sign in',
+  'auth.forgot.resend': 'Resend link',
+  'auth.forgot.resendIn': 'Resend in {seconds}s',
+
+  // A11y
+  'a11y.back': 'Back',
+
+  // Account toasts
+  'account.toast.passwordSaved': 'Password updated',
+  'account.toast.emailSaved': 'Email updated',
+  'account.toast.phoneSaved': 'Phone number updated',
+  'account.toast.googleUnlinked': 'Google account unlinked',
+  'account.toast.deleted': 'Account scheduled for deletion',
+
   // Sign out
   'auth.signedOut': 'Signed out',
 
   // Home
   'home.greeting': 'Hi {name}',
+  'home.greeting.morning': 'Good morning',
+  'home.greeting.afternoon': 'Good afternoon',
+  'home.greeting.evening': 'Good evening',
+  'home.headline.prefix': '{name} — what shall we',
+  'home.headline.verb': 'book',
+  'home.headline.suffix': 'today?',
   'home.tagline': 'What can we book for you today?',
   'home.search.placeholder': 'Search services, providers…',
   'home.section.categories': 'Categories',
@@ -196,10 +250,12 @@ const en: Dict = {
   'provider.book': 'Book now',
   'provider.verified': 'Verified',
   'provider.distance': '{km} km away',
+  'provider.specialistHint': 'Tap a specialist to see their details. You can pick one during booking.',
 
   // Booking flow
   'book.title': 'Book',
   'book.step.service': 'Choose service',
+  'book.stepN': 'Step {n}',
   'book.step.when': 'Pick a time',
   'book.step.details': 'Last details',
   'book.date': 'Date',
@@ -213,12 +269,21 @@ const en: Dict = {
   'book.summary': 'Summary',
   'book.total': 'Total',
   'book.success.title': 'Booking confirmed',
-  'book.success.sub': 'We’ve sent the details to your phone. The provider will reach out to confirm.',
+  'book.success.sub': 'We’ve sent the details to you. The provider will reach out to confirm.',
+  'book.success.kicker': 'CONFIRMED',
+  'book.success.headlineA': 'You’re all',
+  'book.success.headlineB': 'booked.',
+  'book.success.confirmation': 'CONFIRMATION',
+  'book.success.receipt': 'We’ve sent the details to you. Reschedule or cancel anytime from My Bookings.',
   'book.success.viewBooking': 'View booking',
   'book.success.done': 'Done',
 
   // Bookings tab
   'bookings.title': 'My bookings',
+  'bookings.kicker': 'SCHEDULE',
+  'bookings.headline': 'Your bookings.',
+  'bookings.partyPerson': '{count} person',
+  'bookings.partyPeople': '{count} people',
   'bookings.tab.upcoming': 'Upcoming',
   'bookings.tab.past': 'Past',
   'bookings.empty.upcoming.title': 'No upcoming bookings',
@@ -296,6 +361,7 @@ const en: Dict = {
   'staff.selectedWork': 'Selected work',
   'staff.seeAll': 'See all',
   'staff.showLess': 'Show less',
+  'staff.viewAll': 'View all',
 
   // Booking review badges
   'badge.instantBooking': 'Instant booking',
@@ -351,6 +417,7 @@ const en: Dict = {
   'review.kicker.staff': 'Who served you? (optional)',
   'review.kicker.title': 'Leave a review',
   'review.submit': 'Submit review',
+  'review.verified': 'Verified',
   'review.commentPlaceholder': 'Share your experience…',
 
   // Directions sheet
@@ -359,6 +426,14 @@ const en: Dict = {
   // Notifications
   'notifs.allCaughtUp.title': 'All caught up',
   'notifs.allCaughtUp.sub': 'No new notifications right now.',
+  'notifs.kicker': 'INBOX',
+  'notifs.title': 'Notifications',
+  'notifs.newCount': '{count} new',
+  'notifs.markAllRead': 'Mark all read',
+  'notifs.markedAllRead': 'All notifications marked as read',
+  'notifs.group.today': 'TODAY',
+  'notifs.group.earlier': 'EARLIER',
+  'notifs.prefs.aria': 'Notification preferences',
 
   // Category empty
   'category.empty.title': 'No providers match',
@@ -415,6 +490,7 @@ const en: Dict = {
   'studio.result.title': 'Result',
   'studio.result.look': 'Look',
   'studio.result.bookKicker': 'Book this look',
+  'studio.result.handPicked': 'Hand-picked {keyword} specialists in your area.',
   'studio.generate.style': 'Style',
   'studio.generate.color': 'Color',
   'studio.generate.results': 'Results',
@@ -445,6 +521,8 @@ const en: Dict = {
   'toast.bookingRescheduled': 'Booking rescheduled',
   'toast.sharingTo': 'Sharing to {channel}…',
   'toast.sharingSoon': 'Sharing soon',
+  'toast.savedToCameraRoll': 'Saved to camera roll (demo)',
+  'toast.savedToFavourites': 'Saved to favourites',
 
   // Settings page kickers
   'settings.kicker.account': 'ACCOUNT',
@@ -473,6 +551,20 @@ const en: Dict = {
   'studio.generate.poweredBy': 'Powered by Seeme Studio · runs on-device',
   'studio.generate.generating': 'Generating 4 variants…',
   'studio.generate.generatingSub': 'Sampling style, applying color, balancing tones…',
+  'studio.generate.regenerate': 'Regenerate',
+  'studio.generate.resultsHeading': 'Which one is you?',
+  'studio.generate.topMatch': 'Top match',
+  'studio.generate.pickTwo': 'Pick up to 2 to compare',
+  'studio.generate.pickTwoCta': 'Pick 2 variants to compare',
+  'studio.generate.compare': 'Compare',
+  'studio.generate.bookLook': 'Book this look',
+  'studio.result.studiosThatDoIt': 'Studios that do it well',
+  'studio.result.noStudios': 'No studios match this look yet — try a different style or color.',
+  'studio.result.saveImage': 'Save image',
+  'studio.compare.error': 'Couldn’t load both variants — go back to pick again.',
+  'studio.compare.match': 'Match',
+  'studio.compare.bookA': 'Book look A',
+  'studio.compare.bookB': 'Book look B',
 
   // Provider gallery
   'provider.gallery.kicker': 'Gallery',
@@ -498,6 +590,15 @@ const en: Dict = {
 
   // City picker
   'cityPicker.search': 'Search a city or region…',
+  'cityPicker.kicker': 'LOCATION',
+  'cityPicker.headline': 'Where are you booking from?',
+  'cityPicker.useLocation': 'Use current location',
+  'cityPicker.useLocationSub': 'We’ll only use it to find providers near you.',
+  'cityPicker.popular': 'POPULAR',
+  'cityPicker.allCities': 'ALL CITIES',
+  'cityPicker.results': 'RESULTS',
+  'cityPicker.nothingMatched': 'NOTHING MATCHED',
+  'cityPicker.nothingMatchedSub': 'We don’t serve that area yet — try Yangon or Mandalay.',
 
   // All filters sheet
   'filters.kicker': 'Filters',
@@ -556,7 +657,7 @@ const en: Dict = {
   'terms.p1': 'By using Seeme you agree to our terms of service and privacy policy.',
   'terms.p2': 'Bookings are held free of charge. Payment is collected by the provider on arrival unless stated otherwise. You can cancel any booking up to 2 hours before the scheduled time at no cost. Repeated late cancellations may impact your account standing.',
   'terms.p3.intro': 'We collect minimal personal data needed to process bookings. We do not sell your data. The full privacy policy is available at',
-  'terms.p3.url': 'bookly.mm/privacy',
+  'terms.p3.url': 'seeme.mm/privacy',
 
   // Me / Profile
   'me.editProfile': 'Edit profile',
@@ -564,6 +665,7 @@ const en: Dict = {
   'me.section.preferences': 'Preferences',
   'me.section.account': 'Account',
   'me.section.helpAbout': 'Help & About',
+  'me.account': 'Account',
   'me.bookings': 'My bookings',
   'me.favorites': 'Saved providers',
   'me.notifications': 'Notifications',
@@ -738,6 +840,8 @@ const my: Dict = {
   'auth.otp.kicker': 'အတည်ပြု',
   'auth.otp.headline': '၆ လုံးကုဒ်ထည့်ပါ',
   'auth.otp.sub': '{phone} သို့ ပို့ပြီး။ မရရှိပါက?',
+  'auth.otp.sub.email': '{email} သို့ ပို့ပြီး။ မရရှိပါက?',
+  'auth.otp.wrongEmail': 'အီးမေးလ်မှားသွားသလား။',
   'auth.otp.resend': 'ပြန်ပို့ပါ',
   'auth.otp.resendIn': '{seconds}s ပြန်ပို့မည်',
   'auth.otp.wrongNumber': 'နံပါတ်မှားသွားသလား။',
@@ -753,9 +857,57 @@ const my: Dict = {
   'auth.profile.city.label': 'မြို့',
   'auth.profile.continue': 'ဆက်လုပ်',
 
+  'auth.choice.newPrompt': 'Seeme အသစ်လား?',
+  'auth.choice.createAccount': 'အကောင့်ဖန်တီးပါ',
+
+  'auth.signin.headline': 'Seeme သို့ ဝင်ပါ။',
+  'auth.signin.sub': 'အကောင့်နှင့်တွဲထားသော အီးမေးလ်နှင့် စကားဝှက်ဖြင့် ဝင်ပါ။',
+  'auth.signin.passwordPlaceholder': 'စကားဝှက်',
+  'auth.signin.forgot': 'စကားဝှက် မေ့သွားပြီလား?',
+  'auth.signin.cta': 'ဝင်မည်',
+  'auth.signin.verifying': 'စစ်ဆေးနေသည်…',
+  'auth.password.show': 'စကားဝှက်ပြရန်',
+  'auth.password.hide': 'စကားဝှက်ဖျောက်ရန်',
+
+  'auth.signup.kicker': 'အကောင့်ဖန်တီး',
+  'auth.signup.headline': 'Seeme မှ ကြိုဆိုပါသည်။',
+  'auth.signup.sub': 'အကောင့်ကို စက္ကန့်အနည်းငယ်အတွင်း ဖန်တီးနိုင်ပါသည်။',
+  'auth.signup.namePlaceholder': 'အမည်အပြည့်အစုံ',
+  'auth.signup.emailPlaceholder': 'အီးမေးလ်',
+  'auth.signup.passwordPlaceholder': 'စကားဝှက် (အနည်းဆုံး ၆ လုံး)',
+  'auth.signup.cta': 'အကောင့်ဖန်တီးပါ',
+  'auth.signup.havePrompt': 'အကောင့်ရှိပြီးသားလား?',
+  'auth.signup.signIn': 'ဝင်မည်',
+
+  'auth.forgot.kicker': 'စကားဝှက် ပြန်လည်သတ်မှတ်',
+  'auth.forgot.headline': 'မေ့သွားပြီလား? စိတ်မပူပါနဲ့။',
+  'auth.forgot.sub': 'အကောင့်ဖန်တီးရာတွင် အသုံးပြုခဲ့သော အီးမေးလ်ကို ထည့်ပါ — ပြန်လည်သတ်မှတ်ရန် လင့်ခ်ပို့ပေးပါမည်။',
+  'auth.forgot.placeholder': 'you@example.com',
+  'auth.forgot.cta': 'ပြန်လည်သတ်မှတ်ရန် လင့်ခ်ပို့မည်',
+  'auth.forgot.sentKicker': 'အီးမေးလ်ကိုစစ်ပါ',
+  'auth.forgot.sentHeadline': 'လင့်ခ်ပို့ပြီးပါပြီ။',
+  'auth.forgot.sentSub': '{email} သို့ လင့်ခ်ပို့ပြီးပါပြီ။ ၁၅ မိနစ်အတွင်း သုံးပါ။',
+  'auth.forgot.back': 'ဝင်ရန်စာမျက်နှာသို့ ပြန်သွား',
+  'auth.forgot.resend': 'လင့်ခ်ပြန်ပို့ပါ',
+  'auth.forgot.resendIn': '{seconds}s ပြန်ပို့မည်',
+
+  'a11y.back': 'နောက်သို့',
+
+  'account.toast.passwordSaved': 'စကားဝှက် ပြောင်းပြီးပါပြီ',
+  'account.toast.emailSaved': 'အီးမေးလ် ပြောင်းပြီးပါပြီ',
+  'account.toast.phoneSaved': 'ဖုန်းနံပါတ် ပြောင်းပြီးပါပြီ',
+  'account.toast.googleUnlinked': 'Google အကောင့်ကို ဖြုတ်ပြီးပါပြီ',
+  'account.toast.deleted': 'အကောင့်ဖျက်ရန် စီစဉ်ပြီးပါပြီ',
+
   'auth.signedOut': 'ထွက်ပြီးပါပြီ',
 
   'home.greeting': 'မင်္ဂလာပါ {name}',
+  'home.greeting.morning': 'မင်္ဂလာ မနက်ခင်းပါ',
+  'home.greeting.afternoon': 'မင်္ဂလာ နေ့လယ်ပါ',
+  'home.greeting.evening': 'မင်္ဂလာ ညနေပါ',
+  'home.headline.prefix': '{name} — ဘာကို',
+  'home.headline.verb': 'ဘွတ်ကင်လုပ်',
+  'home.headline.suffix': 'မလဲ?',
   'home.tagline': 'ဘာကို ဘွတ်ကင်လုပ်ချင်ပါသလဲ?',
   'home.search.placeholder': 'ဝန်ဆောင်မှု၊ ဆိုင်ရာ ရှာဖွေ…',
   'home.section.categories': 'အမျိုးအစားများ',
@@ -786,9 +938,11 @@ const my: Dict = {
   'provider.book': 'ယခု ဘွတ်ကင်လုပ်ရန်',
   'provider.verified': 'အတည်ပြုပြီး',
   'provider.distance': '{km} ကီလိုမီတာ ကွာ',
+  'provider.specialistHint': 'အသေးစိတ်ကြည့်ရန် ဝန်ထမ်းကို နှိပ်ပါ။ ဘွတ်ကင်လုပ်စဉ်ရွေးနိုင်ပါသည်။',
 
   'book.title': 'ဘွတ်ကင်',
   'book.step.service': 'ဝန်ဆောင်မှု ရွေးပါ',
+  'book.stepN': 'အဆင့် {n}',
   'book.step.when': 'အချိန် ရွေးပါ',
   'book.step.details': 'နောက်ဆုံး အသေးစိတ်',
   'book.date': 'ရက်စွဲ',
@@ -802,11 +956,20 @@ const my: Dict = {
   'book.summary': 'အကျဉ်း',
   'book.total': 'စုစုပေါင်း',
   'book.success.title': 'ဘွတ်ကင် အတည်ပြုပြီးပါပြီ',
-  'book.success.sub': 'အသေးစိတ်ကို ဖုန်းသို့ ပို့ထားပါသည်။ ဆိုင်မှ ဆက်သွယ်ပါမည်။',
+  'book.success.sub': 'အသေးစိတ်ကို ပို့ထားပြီးပါပြီ။ ဆိုင်မှ ဆက်သွယ်ပါမည်။',
+  'book.success.kicker': 'အတည်ပြုပြီး',
+  'book.success.headlineA': 'အားလုံး',
+  'book.success.headlineB': 'ပြီးပါပြီ။',
+  'book.success.confirmation': 'အတည်ပြုနံပါတ်',
+  'book.success.receipt': 'အသေးစိတ်ကို ပို့ထားပြီးပါပြီ။ ဘွတ်ကင်များ မှ ဆက်လုပ်နိုင်ပါသည်။',
   'book.success.viewBooking': 'ဘွတ်ကင်ကြည့်ရန်',
   'book.success.done': 'ပြီးပြီ',
 
   'bookings.title': 'ကျွန်ုပ်၏ ဘွတ်ကင်များ',
+  'bookings.kicker': 'အချိန်စာရင်း',
+  'bookings.headline': 'သင်၏ ဘွတ်ကင်များ။',
+  'bookings.partyPerson': '{count} ဦး',
+  'bookings.partyPeople': '{count} ဦး',
   'bookings.tab.upcoming': 'လာမည့်',
   'bookings.tab.past': 'ပြီးခဲ့သော',
   'bookings.empty.upcoming.title': 'လာမည့် ဘွတ်ကင် မရှိပါ',
@@ -884,6 +1047,7 @@ const my: Dict = {
   'staff.selectedWork': 'ရွေးချယ်ထားသော အလုပ်များ',
   'staff.seeAll': 'အားလုံးကြည့်',
   'staff.showLess': 'အနည်းငယ် ပြသ',
+  'staff.viewAll': 'အားလုံးကြည့်ရန်',
 
   // Booking review badges
   'badge.instantBooking': 'ချက်ချင်း အတည်ပြု',
@@ -939,6 +1103,7 @@ const my: Dict = {
   'review.kicker.staff': 'ဆောင်ရွက်ပေးသူ? (ထည့်လိုက)',
   'review.kicker.title': 'သုံးသပ်ချက် ရေးမည်',
   'review.submit': 'သုံးသပ်ချက် တင်ရန်',
+  'review.verified': 'အတည်ပြုပြီး',
   'review.commentPlaceholder': 'အတွေ့အကြုံ မျှဝေပါ…',
 
   // Directions sheet
@@ -947,6 +1112,14 @@ const my: Dict = {
   // Notifications
   'notifs.allCaughtUp.title': 'အားလုံး ပြီးပါပြီ',
   'notifs.allCaughtUp.sub': 'အကြောင်းကြားချက်အသစ် မရှိပါ။',
+  'notifs.kicker': 'အင်ဘောက်စ်',
+  'notifs.title': 'အကြောင်းကြားချက်များ',
+  'notifs.newCount': 'အသစ် {count}',
+  'notifs.markAllRead': 'အားလုံး ဖတ်ပြီးအဖြစ် မှတ်ပါ',
+  'notifs.markedAllRead': 'အကြောင်းကြားချက်အားလုံးကို ဖတ်ပြီးအဖြစ် မှတ်လိုက်ပါပြီ',
+  'notifs.group.today': 'ဒီနေ့',
+  'notifs.group.earlier': 'အရင်က',
+  'notifs.prefs.aria': 'အကြောင်းကြားချက် ဆက်တင်',
 
   // Category empty
   'category.empty.title': 'တိုက်ဆိုင်သော ဆိုင် မရှိပါ',
@@ -1003,6 +1176,7 @@ const my: Dict = {
   'studio.result.title': 'ရလဒ်',
   'studio.result.look': 'လုပ်ဖော်',
   'studio.result.bookKicker': 'ဤလုပ်ဖော်ကို ဘွတ်ကင်တင်ရန်',
+  'studio.result.handPicked': 'သင့်ဧရိယာရှိ {keyword} ပညာရှင်များ။',
   'studio.generate.style': 'ပုံစံ',
   'studio.generate.color': 'အရောင်',
   'studio.generate.results': 'ရလဒ်များ',
@@ -1033,6 +1207,8 @@ const my: Dict = {
   'toast.bookingRescheduled': 'ဘွတ်ကင် ပြောင်းပြီး',
   'toast.sharingTo': '{channel} သို့ မျှဝေနေ…',
   'toast.sharingSoon': 'မျှဝေခြင်း မကြာမီ',
+  'toast.savedToCameraRoll': 'ပုံကို သိမ်းပြီးပါပြီ (demo)',
+  'toast.savedToFavourites': 'အကြိုက်ဆုံးထဲတွင် သိမ်းပြီးပါပြီ',
 
   // Settings page kickers
   'settings.kicker.account': 'အကောင့်',
@@ -1060,6 +1236,20 @@ const my: Dict = {
   'studio.generate.cta': 'အပြောင်းအလဲ ၄ မျိုး ဖန်တီးမည်',
   'studio.generate.poweredBy': 'Seeme Studio · ဖုန်းပေါ်တွင် လုပ်ဆောင်',
   'studio.generate.generating': 'အပြောင်းအလဲ ၄ မျိုး ဖန်တီးနေ…',
+  'studio.generate.regenerate': 'ပြန်ဖန်တီးပါ',
+  'studio.generate.resultsHeading': 'ဘယ်တစ်ခုက သင်ပါလဲ?',
+  'studio.generate.topMatch': 'ထိပ်ဆုံးကိုက်ညီမှု',
+  'studio.generate.pickTwo': 'နှိုင်းယှဉ်ရန် အများဆုံး ၂ ခု ရွေးပါ',
+  'studio.generate.pickTwoCta': 'နှိုင်းယှဉ်ရန် ၂ ခု ရွေးပါ',
+  'studio.generate.compare': 'နှိုင်းယှဉ်',
+  'studio.generate.bookLook': 'ဤပုံစံကို ဘွတ်ကင်လုပ်',
+  'studio.result.studiosThatDoIt': 'ဤပုံစံကို ကောင်းမွန်စွာ လုပ်နိုင်သော စတူဒီယိုများ',
+  'studio.result.noStudios': 'ဤပုံစံနှင့်ကိုက်ညီသော စတူဒီယိုမရှိသေးပါ — အခြားပုံစံ သို့မဟုတ် အရောင်ကို စမ်းပါ။',
+  'studio.result.saveImage': 'ပုံကို သိမ်းပါ',
+  'studio.compare.error': 'အပြောင်းအလဲနှစ်ခုလုံးကို မဖွင့်နိုင်ပါ — နောက်သို့ ပြန်သွားပြီး ထပ်ရွေးပါ။',
+  'studio.compare.match': 'ကိုက်ညီမှု',
+  'studio.compare.bookA': 'ပုံ A ကို ဘွတ်ကင်လုပ်',
+  'studio.compare.bookB': 'ပုံ B ကို ဘွတ်ကင်လုပ်',
   'studio.generate.generatingSub': 'ပုံစံ၊ အရောင်၊ အသွေး ချိန်ညှိနေ…',
 
   // Provider gallery
@@ -1086,6 +1276,15 @@ const my: Dict = {
 
   // City picker
   'cityPicker.search': 'မြို့ သို့မဟုတ် ဒေသ ရှာရန်…',
+  'cityPicker.kicker': 'တည်နေရာ',
+  'cityPicker.headline': 'ဘယ်နေရာက ဘွတ်ကင်လုပ်နေပါသလဲ?',
+  'cityPicker.useLocation': 'လက်ရှိ တည်နေရာ သုံးပါ',
+  'cityPicker.useLocationSub': 'အနီးအနားရှိ ဆိုင်များကို ရှာဖို့သာ သုံးပါမည်။',
+  'cityPicker.popular': 'လူသိများသော',
+  'cityPicker.allCities': 'မြို့အားလုံး',
+  'cityPicker.results': 'ရလဒ်များ',
+  'cityPicker.nothingMatched': 'ရှာမတွေ့ပါ',
+  'cityPicker.nothingMatchedSub': 'ထိုဒေသကို မဝန်ဆောင်ရသေးပါ — ရန်ကုန် သို့ မန္တလေး စမ်းကြည့်ပါ။',
 
   // All filters sheet
   'filters.kicker': 'စစ်ထုတ်မှု',
@@ -1144,13 +1343,14 @@ const my: Dict = {
   'terms.p1': 'Seeme ကို အသုံးပြုခြင်းဖြင့် ကျွန်ုပ်တို့၏ ဝန်ဆောင်မှု စည်းကမ်းချက်များနှင့် ကိုယ်ရေးကိုယ်တာ မူဝါဒကို သဘောတူပါသည်။',
   'terms.p2': 'ဘွတ်ကင်များကို အခမဲ့ ထိန်းသိမ်းပါသည်။ ဖော်ပြထားခြင်း မရှိပါက ဆိုင်တွင်ပင် ငွေပေးချေရပါမည်။ သတ်မှတ်ထားသော အချိန် ၂ နာရီအလို ဘွတ်ကင်တိုင်းကို အခမဲ့ ပယ်ဖျက်နိုင်ပါသည်။ ထပ်ခါထပ်ခါ နောက်ကျ ပယ်ဖျက်ပါက အကောင့်အပေါ် သက်ရောက်နိုင်ပါသည်။',
   'terms.p3.intro': 'ဘွတ်ကင်ပြုလုပ်ရန် လိုအပ်သော ကိုယ်ရေးအချက်အလက်ကိုသာ စုဆောင်းပါသည်။ သင်၏ အချက်အလက်များကို ရောင်းချခြင်း မရှိပါ။ အပြည့်အစုံကို',
-  'terms.p3.url': 'bookly.mm/privacy',
+  'terms.p3.url': 'seeme.mm/privacy',
 
   'me.editProfile': 'ပရိုဖိုင်ပြင်ရန်',
   'me.section.activity': 'လှုပ်ရှားမှု',
   'me.section.preferences': 'ဆက်တင်များ',
   'me.section.account': 'အကောင့်',
   'me.section.helpAbout': 'အကူအညီ',
+  'me.account': 'အကောင့်',
   'me.bookings': 'ကျွန်ုပ်၏ ဘွတ်ကင်များ',
   'me.favorites': 'သိမ်းထားသော ဆိုင်များ',
   'me.notifications': 'အကြောင်းကြားချက်',

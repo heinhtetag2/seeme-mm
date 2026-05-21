@@ -40,11 +40,11 @@ export function TopBar({
       </div>
       <button
         onClick={onBellClick}
-        className="relative h-10 w-10 grid place-items-center rounded-full border border-line/70 bg-surface/60 hover:border-brand/40 transition"
+        className="relative h-11 w-11 grid place-items-center rounded-full border border-line/70 bg-surface/60 hover:border-brand/40 transition"
         aria-label={t('topbar.notifications')}
       >
         <Bell size={16} className="text-ink/90" strokeWidth={1.8} />
-        {hasUnread && <span className="absolute top-2.5 right-2.5 h-1.5 w-1.5 rounded-full bg-brand ring-2 ring-canvas" />}
+        {hasUnread && <span className="absolute top-3 right-3 h-1.5 w-1.5 rounded-full bg-brand ring-2 ring-canvas" />}
       </button>
     </header>
   )

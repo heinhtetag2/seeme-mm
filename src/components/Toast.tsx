@@ -22,12 +22,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto inline-flex items-center gap-1.5 h-8 pl-2.5 pr-3 rounded-full bg-ink text-canvas animate-fade-in"
+            className="pointer-events-auto inline-flex items-center gap-1.5 min-h-8 py-1.5 pl-2.5 pr-3 max-w-full rounded-2xl bg-ink text-canvas animate-fade-in"
           >
-            {t.kind === 'success' && <Check size={12} strokeWidth={2.6} className="opacity-80" />}
-            {t.kind === 'error'   && <X size={12} strokeWidth={2.6} className="text-rust-30" />}
-            {t.kind === 'info'    && <AlertCircle size={12} strokeWidth={2.4} className="opacity-80" />}
-            <span className="text-[11.5px] font-medium tracking-tight leading-none">{t.text}</span>
+            {t.kind === 'success' && <Check size={12} strokeWidth={2.6} className="shrink-0 mt-px opacity-80" />}
+            {t.kind === 'error'   && <X size={12} strokeWidth={2.6} className="shrink-0 mt-px text-rust-30" />}
+            {t.kind === 'info'    && <AlertCircle size={12} strokeWidth={2.4} className="shrink-0 mt-px opacity-80" />}
+            <span className="text-[11.5px] font-medium tracking-tight leading-snug">{t.text}</span>
           </div>
         ))}
       </div>

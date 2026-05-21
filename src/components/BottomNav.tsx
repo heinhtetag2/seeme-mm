@@ -67,13 +67,13 @@ export function BottomNav({ active, onChange }: { active: Tab; onChange: (t: Tab
               className="relative flex flex-1 flex-col items-center justify-center gap-1 py-2"
             >
               {isActive && (
-                <span className="absolute top-0 h-[2px] w-7 rounded-full bg-ink" />
+                <span className="absolute top-0 h-[2px] w-7 rounded-full bg-brand" />
               )}
               {emphasis ? (
                 <span
                   className={`grid place-items-center h-7 w-7 rounded-full transition
                     ${isActive
-                      ? 'bg-brand text-canvas'
+                      ? 'bg-brand text-white'
                       : 'bg-brand/12 text-brand'}`}
                 >
                   <Icon

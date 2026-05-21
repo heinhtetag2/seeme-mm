@@ -62,9 +62,9 @@ export function CityPickerScreen({
       <SubScreenHeader onBack={onBack} />
 
       <div className="px-5">
-        <div className="kicker mb-1.5">LOCATION</div>
+        <div className="kicker mb-1.5">{t('cityPicker.kicker')}</div>
         <h1 className="font-serif text-[28px] leading-[1.05] tracking-tight font-semibold mb-5">
-          Where are you<br />booking from?
+          {t('cityPicker.headline')}
         </h1>
 
         {/* Search */}
@@ -92,34 +92,45 @@ export function CityPickerScreen({
             <Locate size={15} strokeWidth={2} className="text-brand" />
           </span>
           <div className="flex-1 min-w-0">
-            <div className="text-[13.5px] font-semibold tracking-tight">Use current location</div>
-            <div className="text-[11.5px] text-ink-muted mt-0.5">We'll only use it to find providers near you.</div>
+            <div className="text-[13.5px] font-semibold tracking-tight">{t('cityPicker.useLocation')}</div>
+            <div className="text-[11.5px] text-ink-muted mt-0.5">{t('cityPicker.useLocationSub')}</div>
           </div>
         </button>
 
         {/* Popular */}
         {!q && popular.length > 0 && (
-          <Section title="POPULAR">
+          <Section title={t('cityPicker.popular')}>
             {popular.map((c) => (
               <CityRowItem key={c.id} c={c} active={c.name === current} onClick={() => choose(c.name)} />
             ))}
           </Section>
         )}
 
-        {/* All / search results */}
-        {(q || all.length > popular.length) && (
-          <Section title={q ? 'RESULTS' : 'ALL CITIES'}>
-            {(q ? all : all.filter((c) => !c.popular)).map((c) => (
-              <CityRowItem key={c.id} c={c} active={c.name === current} onClick={() => choose(c.name)} />
-            ))}
-          </Section>
+        {/* All / search results — when searching, render results once (don't
+            duplicate the popular cities under a second header). */}
+        {q ? (
+          all.length > 0 && (
+            <Section title={t('cityPicker.results')}>
+              {all.map((c) => (
+                <CityRowItem key={c.id} c={c} active={c.name === current} onClick={() => choose(c.name)} />
+              ))}
+            </Section>
+          )
+        ) : (
+          all.length > popular.length && (
+            <Section title={t('cityPicker.allCities')}>
+              {all.filter((c) => !c.popular).map((c) => (
+                <CityRowItem key={c.id} c={c} active={c.name === current} onClick={() => choose(c.name)} />
+              ))}
+            </Section>
+          )
         )}
 
         {q && all.length === 0 && (
           <div className="py-12 text-center">
-            <div className="kicker mb-2">NOTHING MATCHED</div>
+            <div className="kicker mb-2">{t('cityPicker.nothingMatched')}</div>
             <p className="text-[12.5px] text-ink-muted max-w-[260px] mx-auto">
-              We don't serve that area yet — try Yangon or Mandalay.
+              {t('cityPicker.nothingMatchedSub')}
             </p>
           </div>
         )}
@@ -146,7 +157,7 @@ function CityRowItem({ c, active, onClick }: { c: CityRow; active: boolean; onCl
         <div className="text-[11px] text-ink-muted mt-0.5">{c.region}</div>
       </div>
       {active && (
-        <span className="h-5 w-5 rounded-full bg-ink text-canvas grid place-items-center">
+        <span className="h-5 w-5 rounded-full bg-brand text-white grid place-items-center">
           <Check size={11} strokeWidth={3} />
         </span>
       )}

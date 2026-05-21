@@ -141,7 +141,7 @@ export function ProviderScreen({
           {provider.distanceKm > 0 && (
             <>
               <span className="text-ink-dim">·</span>
-              <span className="text-ink-muted">{provider.distanceKm} km away</span>
+              <span className="text-ink-muted">{t('provider.distance', { km: provider.distanceKm })}</span>
             </>
           )}
         </div>
@@ -237,9 +237,9 @@ export function ProviderScreen({
                 />
                 <div className="absolute inset-0 bg-ink/60 grid place-items-center text-center px-2">
                   <div>
-                    <div className="text-canvas font-serif text-[22px] font-semibold leading-none tabular-nums">+7</div>
+                    <div className="text-canvas font-serif text-[22px] font-semibold leading-none tabular-nums">+{Math.max(0, 12 - 5)}</div>
                     <div className="text-canvas/85 text-[11px] font-semibold mt-1 inline-flex items-center gap-0.5">
-                      View all <ChevronRight size={11} strokeWidth={2.4} />
+                      {t('staff.viewAll')} <ChevronRight size={11} strokeWidth={2.4} />
                     </div>
                   </div>
                 </div>
@@ -272,7 +272,7 @@ export function ProviderScreen({
                 ))}
               </div>
               <p className="px-5 mt-1 text-[11.5px] text-ink-muted">
-                Tap a specialist to see their details. You can pick one during booking.
+                {t('provider.specialistHint')}
               </p>
             </section>
 
@@ -419,7 +419,7 @@ export function ProviderScreen({
             </button>
             <button
               onClick={() => go({ kind: 'book', providerId: provider.id, serviceId: selectedService ?? undefined, staffId: undefined })}
-              className="h-12 rounded-full bg-ink text-canvas text-[13.5px] font-semibold leading-none active:opacity-90"
+              className="h-12 rounded-full bg-brand text-white text-[13.5px] font-semibold leading-none active:opacity-90"
             >
               {t('bookings.bookAgain')}
             </button>
@@ -427,7 +427,7 @@ export function ProviderScreen({
         ) : (
           <button
             onClick={() => go({ kind: 'book', providerId: provider.id, serviceId: selectedService ?? undefined, staffId: undefined })}
-            className="w-full h-12 rounded-full bg-ink text-canvas text-[14px] font-semibold leading-none active:opacity-90"
+            className="w-full h-12 rounded-full bg-brand text-white text-[14px] font-semibold leading-none active:opacity-90"
           >
             {t('provider.book')}
           </button>
@@ -449,7 +449,7 @@ export function ProviderScreen({
 function ShareSheet({ provider, onClose }: { provider: Provider; onClose: () => void }) {
   const t = useT()
   const { show } = useToast()
-  const url = `https://bookly.mm/p/${provider.id}`
+  const url = `https://seeme.mm/p/${provider.id}`
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(url)
@@ -501,7 +501,7 @@ function ShareSheet({ provider, onClose }: { provider: Provider; onClose: () => 
           </button>
           <button
             onClick={() => share('System')}
-            className="h-11 rounded-full bg-ink text-canvas text-[12.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
+            className="h-11 rounded-full bg-brand text-white text-[12.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5"
           >
             <Share2 size={13} strokeWidth={2} /> {t('share.more')}
           </button>
@@ -551,7 +551,7 @@ function FilterChip({
       onClick={onClick}
       className={`shrink-0 h-9 px-4 inline-flex items-center justify-center rounded-full text-[12px] font-semibold leading-none border transition
         ${active
-          ? 'bg-ink text-canvas border-ink'
+          ? 'bg-brand text-white border-brand'
           : 'bg-surface-elevated border-line/70 text-ink-muted hover:border-line-strong'}`}
     >
       {children}
@@ -634,7 +634,7 @@ function StaffSheet({
         <div className="mt-6 grid grid-cols-1 gap-2">
           <button
             onClick={onBook}
-            className="h-12 rounded-full bg-ink text-canvas text-[13.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5 active:opacity-90"
+            className="h-12 rounded-full bg-brand text-white text-[13.5px] font-semibold leading-none inline-flex items-center justify-center gap-1.5 active:opacity-90"
           >
             <CalendarCheck size={14} strokeWidth={2.2} />
             {t('staff.bookWith', { name: staff.name.split(' ').slice(-1)[0] })}

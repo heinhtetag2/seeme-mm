@@ -202,7 +202,7 @@ export function PostDetailScreen({
             onClick={submit}
             disabled={!draft.trim()}
             className={`grid place-items-center h-10 w-10 rounded-full transition
-              ${draft.trim() ? 'bg-ink text-canvas' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
+              ${draft.trim() ? 'bg-brand text-white' : 'bg-surface-higher text-ink-dim cursor-not-allowed'}`}
           >
             <Send size={15} strokeWidth={2} />
           </button>

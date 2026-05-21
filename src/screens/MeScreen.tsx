@@ -5,8 +5,10 @@ import {
 import { me } from '../data'
 import { useT } from '../i18n'
 import type { Tab, View } from '../nav'
+import type { AuthProfile } from './AuthScreens'
 
-export function MeScreen({ go, setTab, savedCount, bookingsCount, onLogout }: {
+export function MeScreen({ profile, go, setTab, savedCount, bookingsCount, onLogout }: {
+  profile: AuthProfile
   go: (v: View) => void
   setTab: (t: Tab) => void
   savedCount: number
@@ -14,6 +16,7 @@ export function MeScreen({ go, setTab, savedCount, bookingsCount, onLogout }: {
   onLogout: () => void
 }) {
   const t = useT()
+  const contact = profile.email ?? profile.phone ?? me.email
   return (
     <div className="px-5 pt-2 pb-2 space-y-7 animate-fade-in">
       {/* Editorial profile */}
@@ -21,8 +24,8 @@ export function MeScreen({ go, setTab, savedCount, bookingsCount, onLogout }: {
         <div className="kicker mb-1.5">{t('me.profile.kicker')}</div>
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="font-serif text-[28px] leading-[1.05] tracking-tight font-semibold truncate">{me.name}</h1>
-            <div className="text-[12px] text-ink-muted mt-1 truncate">{me.email} · {me.city}</div>
+            <h1 className="font-serif text-[28px] leading-[1.05] tracking-tight font-semibold truncate">{profile.name}</h1>
+            <div className="text-[12px] text-ink-muted mt-1 truncate">{contact} · {profile.city}</div>
           </div>
           <button
             onClick={() => go({ kind: 'edit-profile' })}
@@ -38,11 +41,11 @@ export function MeScreen({ go, setTab, savedCount, bookingsCount, onLogout }: {
       <div className="grid grid-cols-3 border-y border-line/60 divide-x divide-line/60">
         <Stat n={bookingsCount} label={t('me.stats.bookings')} onClick={() => setTab('bookings')} />
         <Stat n={savedCount} label={t('me.stats.saved')} onClick={() => go({ kind: 'saved' })} />
-        <Stat n={me.joined.split(' ')[1]?.slice(2) ?? '26'} label={t('me.stats.memberSince')} prefix="'" />
+        <Stat n={memberSinceShort(me.joined)} label={t('me.stats.memberSince')} prefix="'" />
       </div>
 
       <Section title={t('me.section.preferences')}>
-        <Row Icon={UserCog} label="Account" onClick={() => go({ kind: 'account-settings' })} />
+        <Row Icon={UserCog} label={t('me.account')} onClick={() => go({ kind: 'account-settings' })} />
         <Row Icon={Bell} label={t('me.notifications')} onClick={() => go({ kind: 'notif-prefs' })} />
         <Row Icon={Languages} label={t('me.language')} onClick={() => go({ kind: 'language' })} />
         <Row Icon={Sun} label={t('me.appearance')} onClick={() => go({ kind: 'appearance' })} />
@@ -63,6 +66,11 @@ export function MeScreen({ go, setTab, savedCount, bookingsCount, onLogout }: {
       </button>
     </div>
   )
+}
+
+function memberSinceShort(joined: string) {
+  const year = joined.match(/\b(20\d{2})\b/)?.[1]
+  return year ? year.slice(2) : '—'
 }
 
 function Stat({ n, label, onClick, prefix = '' }: { n: number | string; label: string; onClick?: () => void; prefix?: string }) {

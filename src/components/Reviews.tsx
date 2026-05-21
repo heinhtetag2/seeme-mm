@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Star, ShieldCheck, ThumbsUp, MessageSquareReply } from 'lucide-react'
 import type { Review } from '../data'
+import { useT } from '../i18n'
 
 /* ───────── StarRating: read-only or interactive ─────────
  * size controls the icon size; when `onChange` is provided the row becomes
@@ -63,6 +64,7 @@ export function ReviewCard({
   /** Has the current user already marked it helpful? */
   isHelpful?: boolean
 }) {
+  const t = useT()
   return (
     <article className="py-4 first:pt-6">
       <header className="flex items-start gap-3">
@@ -75,7 +77,7 @@ export function ReviewCard({
             {review.verified && (
               <span className="inline-flex items-center gap-0.5 text-[10.5px] font-medium text-evergreen-50">
                 <ShieldCheck size={10.5} strokeWidth={2.2} />
-                Verified
+                {t('review.verified')}
               </span>
             )}
           </div>

@@ -56,24 +56,24 @@ function MapCanvas({ coords }: { coords: LatLng }) {
   const road1 = (seed % 60) + 20
   const road2 = ((seed * 7) % 60) + 20
   return (
-    <div className="relative h-44 w-full bg-gradient-to-br from-tropic-10 via-sand-10 to-pebble-10">
+    <div className="relative h-44 w-full bg-gradient-to-br from-tropic-10 via-sand-10 to-pebble-10 dark:from-[#15171c] dark:via-[#0f1115] dark:to-[#191b21]">
       {/* Streets */}
-      <div className="absolute inset-0 opacity-90">
-        <div className="absolute h-[3px] left-[-10%] right-[-10%] bg-white/85 rounded-full -rotate-[8deg]"
+      <div className="absolute inset-0 opacity-90 dark:opacity-100">
+        <div className="absolute h-[3px] left-[-10%] right-[-10%] bg-white/85 dark:bg-white/12 rounded-full -rotate-[8deg]"
              style={{ top: `${road1}%` }} />
-        <div className="absolute h-[2px] left-[-10%] right-[-10%] bg-white/70 rounded-full rotate-[14deg]"
+        <div className="absolute h-[2px] left-[-10%] right-[-10%] bg-white/70 dark:bg-white/10 rounded-full rotate-[14deg]"
              style={{ top: `${road2}%` }} />
-        <div className="absolute w-[2.5px] top-[-10%] bottom-[-10%] bg-white/80 rounded-full"
+        <div className="absolute w-[2.5px] top-[-10%] bottom-[-10%] bg-white/80 dark:bg-white/12 rounded-full"
              style={{ left: '38%' }} />
       </div>
       {/* Grid texture */}
-      <div className="absolute inset-0"
+      <div className="absolute inset-0 dark:opacity-50"
            style={{
              backgroundImage: 'linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)',
              backgroundSize: '18px 18px',
            }} />
       {/* "Park" blob */}
-      <div className="absolute h-12 w-16 rounded-[40%] bg-moss-20/80"
+      <div className="absolute h-12 w-16 rounded-[40%] bg-moss-20/80 dark:bg-moss-70/50"
            style={{ top: '14%', right: '10%' }} />
       {/* Pin */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full">
@@ -134,7 +134,7 @@ function DirectionsSheet({
             href={gmaps}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-12 rounded-full bg-ink text-canvas text-[13.5px] font-semibold leading-none inline-flex items-center justify-center gap-2 active:opacity-90"
+            className="h-12 rounded-full bg-brand text-white text-[13.5px] font-semibold leading-none inline-flex items-center justify-center gap-2 active:opacity-90"
           >
             <Navigation size={14} strokeWidth={2.2} />
             Open in Google Maps

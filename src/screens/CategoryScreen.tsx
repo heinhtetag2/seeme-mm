@@ -139,7 +139,7 @@ function DropChip({
       onClick={onClick}
       className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full border text-[12.5px] font-semibold leading-none whitespace-nowrap transition
         ${active
-          ? 'bg-ink text-canvas border-ink'
+          ? 'bg-brand text-white border-brand'
           : 'bg-surface-elevated text-ink border-line/70 hover:border-line-strong'}`}
     >
       {children}
@@ -161,7 +161,7 @@ function ToggleChip({
       onClick={onClick}
       className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full border text-[12.5px] font-semibold leading-none whitespace-nowrap transition
         ${active
-          ? 'bg-ink text-canvas border-ink'
+          ? 'bg-brand text-white border-brand'
           : 'bg-surface-elevated text-ink border-line/70 hover:border-line-strong'}`}
     >
       {active && <Check size={11} strokeWidth={2.6} />}
@@ -190,7 +190,7 @@ function SheetRow({ label, selected, onClick }: { label: string; selected: boole
     <button onClick={onClick} className="w-full flex items-center justify-between gap-3 py-3.5 text-left">
       <span className="text-[14px] font-semibold tracking-tight">{label}</span>
       {selected && (
-        <span className="h-5 w-5 rounded-full bg-ink text-canvas grid place-items-center">
+        <span className="h-5 w-5 rounded-full bg-brand text-white grid place-items-center">
           <Check size={11} strokeWidth={3} />
         </span>
       )}

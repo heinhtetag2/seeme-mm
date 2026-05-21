@@ -151,7 +151,7 @@ export function PaymentPicker({
                 </span>
               ) : (
                 <span className={`h-5 w-5 rounded-full grid place-items-center shrink-0 transition
-                  ${isSel ? 'bg-ink text-canvas' : 'border border-line-strong'}`}>
+                  ${isSel ? 'bg-brand text-white' : 'border border-line-strong'}`}>
                   {isSel && <Check size={11} strokeWidth={3.4} />}
                 </span>
               )}
@@ -309,7 +309,7 @@ function SetupSheet({
         <button
           onClick={submit}
           disabled={busy || !value.trim()}
-          className="mt-5 w-full h-12 rounded-full bg-ink text-canvas text-[13.5px] font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-40"
+          className="mt-5 w-full h-12 rounded-full bg-brand text-white text-[13.5px] font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-40"
         >
           {busy ? <><Loader2 size={14} className="animate-spin" /> Linking…</> : copy.cta}
         </button>

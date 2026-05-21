@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  // The app toggles a `data-theme="dark"` attribute on <html> via theme.ts.
+  // Tell Tailwind to honour that so `dark:` utilities just work.
+  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
@@ -103,6 +106,19 @@ export default {
           30: 'var(--color-base-sunbeam-30)',
           50: 'var(--color-base-sunbeam-50)',
           70: 'var(--color-base-sunbeam-70)',
+        },
+        gold: {
+          10: 'var(--color-base-gold-10)', 20: 'var(--color-base-gold-20)',
+          30: 'var(--color-base-gold-30)', 40: 'var(--color-base-gold-40)',
+          50: 'var(--color-base-gold-50)', 60: 'var(--color-base-gold-60)',
+          70: 'var(--color-base-gold-70)', 80: 'var(--color-base-gold-80)',
+        },
+        rausch: {
+          100:  'var(--color-base-rausch-100)',  200:  'var(--color-base-rausch-200)',
+          300:  'var(--color-base-rausch-300)',  400:  'var(--color-base-rausch-400)',
+          500:  'var(--color-base-rausch-500)',  600:  'var(--color-base-rausch-600)',
+          700:  'var(--color-base-rausch-700)',  800:  'var(--color-base-rausch-800)',
+          900:  'var(--color-base-rausch-900)',  1000: 'var(--color-base-rausch-1000)',
         },
 
         /* Alpha tokens — translucent overlays / tints */
@@ -219,10 +235,10 @@ export default {
       backgroundImage: {
         'brand-gradient': 'linear-gradient(135deg, rgb(var(--brand)) 0%, rgb(var(--brand-2)) 100%)',
         'card-gradient': 'linear-gradient(180deg, rgb(var(--brand) / 0.06) 0%, rgb(var(--brand) / 0) 100%)',
-        'glow-radial': 'radial-gradient(60% 50% at 50% 0%, rgb(var(--brand) / 0.10) 0%, rgb(var(--brand) / 0) 100%)',
+        'glow-radial': 'radial-gradient(60% 50% at 50% 0%, rgb(var(--brand) / 0.20) 0%, rgb(var(--brand) / 0) 100%)',
       },
       boxShadow: {
-        'soft': '0 1px 0 rgb(var(--line) / 0.6), 0 12px 32px -16px rgba(0,0,0,0.55)',
+        'soft': '0 1px 0 rgb(var(--line) / 0.5), 0 8px 24px -18px rgba(0,0,0,0.18)',
         'card': '0 1px 0 rgb(var(--line) / 0.6)',
       },
       animation: {

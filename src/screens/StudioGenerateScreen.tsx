@@ -39,6 +39,10 @@ export function StudioGenerateScreen({
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current) }, [])
 
   const startGeneration = () => {
+    // Guard against double-tap: cancel any in-flight timer and ignore taps
+    // while a generation is already running.
+    if (phase === 'generating') return
+    if (timer.current) window.clearTimeout(timer.current)
     setPhase('generating')
     setPicked(new Set())
     timer.current = window.setTimeout(() => {
@@ -93,7 +97,7 @@ export function StudioGenerateScreen({
                     onClick={() => setStyleId(s.id)}
                     className={`shrink-0 px-3.5 h-9 rounded-full border text-[12px] font-semibold leading-none tracking-tight transition
                       ${active
-                        ? 'bg-ink text-canvas border-ink'
+                        ? 'bg-brand text-white border-brand'
                         : 'bg-surface-elevated text-ink border-line/70 hover:border-line-strong'}`}
                   >
                     {s.name}
@@ -145,7 +149,7 @@ export function StudioGenerateScreen({
           <div className="px-5 mt-8">
             <button
               onClick={startGeneration}
-              className="w-full h-14 rounded-2xl bg-brand text-canvas font-semibold inline-flex items-center justify-center gap-2 active:scale-[0.99] transition"
+              className="w-full h-14 rounded-2xl bg-brand text-white font-semibold inline-flex items-center justify-center gap-2 active:scale-[0.99] transition"
             >
               <Wand2 size={16} strokeWidth={2.2} />
               <span className="text-[14px]">{t('studio.generate.cta')}</span>
@@ -195,7 +199,8 @@ export function StudioGenerateScreen({
                 onClick={startGeneration}
                 className="shrink-0 h-9 px-3 rounded-full border border-line/70 text-[11.5px] font-semibold leading-none inline-flex items-center gap-1.5"
               >
-                <RefreshCw size={12} strokeWidth={2.2} /> Regenerate
+                <RefreshCw size={12} strokeWidth={2.2} />
+                {t('studio.generate.regenerate')}
               </button>
             </div>
 
@@ -238,7 +243,7 @@ export function StudioGenerateScreen({
               disabled={picked.size !== 2}
               className={`flex-1 h-12 rounded-full inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold leading-none transition
                 ${picked.size === 2
-                  ? 'bg-ink text-canvas'
+                  ? 'bg-brand text-white'
                   : 'bg-surface-elevated text-ink-muted border border-line/70'}`}
             >
               <GitCompare size={14} strokeWidth={2.2} />
@@ -247,7 +252,7 @@ export function StudioGenerateScreen({
             {top && (
               <button
                 onClick={() => go({ kind: 'studio-result', lookId: top.id })}
-                className="h-12 px-4 rounded-full bg-brand text-canvas inline-flex items-center gap-1.5 text-[13px] font-semibold leading-none"
+                className="h-12 px-4 rounded-full bg-brand text-white inline-flex items-center gap-1.5 text-[13px] font-semibold leading-none"
               >
                 Book top <ArrowUpRight size={13} strokeWidth={2.4} />
               </button>
@@ -325,7 +330,7 @@ function VariantCard({
 
       {/* picked checkmark */}
       {isPicked && (
-        <div className="absolute -top-1.5 -right-1.5 h-6 w-6 grid place-items-center rounded-full bg-brand text-canvas ring-2 ring-canvas">
+        <div className="absolute -top-1.5 -right-1.5 h-6 w-6 grid place-items-center rounded-full bg-brand text-white ring-2 ring-canvas">
           <Check size={12} strokeWidth={3} />
         </div>
       )}
